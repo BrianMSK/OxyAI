@@ -47,9 +47,11 @@ final class McpController
 
     public function handle(WP_REST_Request $request)
     {
+        $encodingWarnings = $this->inspectRequestEncoding($request);
+
         $json = $request->get_json_params();
         if (is_array($json) && isset($json['jsonrpc'], $json['method'])) {
-            return $this->handleJsonRpc($json);
+            return $this->handleJsonRpc($json, $encodingWarnings);
         }
 
         $tool = (string) $request->get_param('tool');
@@ -63,16 +65,59 @@ final class McpController
         }
 
         if ($result instanceof \OxyAI\Oxygen\Source\SourceBundle) {
-            return $this->ok(['success' => true, 'source' => $result->toArray()]);
+            return $this->ok($this->attachWarnings(['success' => true, 'source' => $result->toArray()], $encodingWarnings));
+        }
+
+        if (is_array($result)) {
+            $result = $this->attachWarnings($result, $encodingWarnings);
         }
 
         return $this->ok($result);
     }
 
     /**
-     * @param array<string, mixed> $request
+     * @return array<int, array<string, string>>
      */
-    private function handleJsonRpc(array $request)
+    private function inspectRequestEncoding(WP_REST_Request $request): array
+    {
+        $body = (string) $request->get_body();
+        if ($body === '' || preg_match('/[^\x00-\x7F]/', $body) !== 1) {
+            return [];
+        }
+
+        $warning = [
+            'code' => 'non_ascii_payload',
+            'severity' => 'warning',
+            'message' => 'Request body contains raw non-ASCII bytes. WordPress storage paths can double-encode these and corrupt diacritics. Send non-ASCII characters as JSON unicode escapes (\\uXXXX) in html, css, js, and oxygen fields.',
+        ];
+
+        do_action('oxyai_oxygen_mcp_non_ascii_input', $body);
+
+        return [$warning];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<int, array<string, string>> $warnings
+     * @return array<string, mixed>
+     */
+    private function attachWarnings(array $payload, array $warnings): array
+    {
+        if ($warnings === []) {
+            return $payload;
+        }
+
+        $existing = isset($payload['warnings']) && is_array($payload['warnings']) ? $payload['warnings'] : [];
+        $payload['warnings'] = array_merge($existing, $warnings);
+
+        return $payload;
+    }
+
+    /**
+     * @param array<string, mixed> $request
+     * @param array<int, array<string, string>> $encodingWarnings
+     */
+    private function handleJsonRpc(array $request, array $encodingWarnings = [])
     {
         $id = $request['id'] ?? null;
         $method = (string) ($request['method'] ?? '');
@@ -106,6 +151,10 @@ final class McpController
 
             if ($result instanceof \OxyAI\Oxygen\Source\SourceBundle) {
                 $result = ['success' => true, 'source' => $result->toArray()];
+            }
+
+            if (is_array($result)) {
+                $result = $this->attachWarnings($result, $encodingWarnings);
             }
 
             return $this->ok($this->jsonRpcResult($id, [
