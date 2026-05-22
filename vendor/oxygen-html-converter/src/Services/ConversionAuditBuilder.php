@@ -67,6 +67,10 @@ class ConversionAuditBuilder
                 'includeCssElement' => !empty($options['includeCssElement']),
                 'inlineStyles' => !empty($options['inlineStyles']),
                 'safeMode' => !empty($options['safeMode']),
+                'preserveStyleBlockCss' => $result['preserveStyleBlockCss'] ?? true,
+                'redistributedCssSelectors' => is_array($result['redistributedCssSelectors'] ?? null)
+                    ? array_values($result['redistributedCssSelectors'])
+                    : [],
                 'info' => $info,
             ],
             'stripped' => $stripped,

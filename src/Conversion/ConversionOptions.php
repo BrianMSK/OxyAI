@@ -22,6 +22,8 @@ final class ConversionOptions
             'safeMode' => $this->bool($input['safeMode'] ?? false, false),
             'debugMode' => $this->bool($input['debugMode'] ?? false, false),
             'useSelectors' => $this->bool($input['useSelectors'] ?? false, false),
+            'preserveStyleBlockCss' => $this->bool($input['preserveStyleBlockCss'] ?? true, true),
+            'mapCssToProperties' => $this->bool($input['mapCssToProperties'] ?? false, false),
         ];
     }
 
