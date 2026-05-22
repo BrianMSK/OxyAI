@@ -758,7 +758,8 @@ class TreeBuilder
             implode(',', $elementClasses) ?: 'none'
         ));
 
-        $matchedCount = 0;
+        $matchedRules = [];
+        $sourceOrder = 0;
 
         foreach ($cssRules as $rule) {
             $selector = trim($rule['selector']);
@@ -773,36 +774,140 @@ class TreeBuilder
                 continue;
             }
 
-            $matched = $this->selectorMatchesElement($selector, $elementClasses, $elementId, $node, $element);
-            if ($matched) {
-                $this->logDebug("Matched selector: $selector");
+            if (!$this->selectorMatchesElement($selector, $elementClasses, $elementId, $node, $element)) {
+                continue;
             }
 
-            if ($matched) {
-                $expandedDeclarations = $this->expandShorthandProperties($rule['declarations']);
-                $materializedDeclarations = $this->filterNeutralFallbackDeclarations($expandedDeclarations);
-                $convertedStyles = $this->styleExtractor->toOxygenProperties($materializedDeclarations);
+            $expandedDeclarations = $this->expandShorthandProperties($rule['declarations']);
+            $materializedDeclarations = $this->filterNeutralFallbackDeclarations($expandedDeclarations);
+            $convertedStyles = $this->styleExtractor->toOxygenProperties($materializedDeclarations);
 
-                if ($convertedStyles === []) {
-                    continue;
+            if ($convertedStyles === []) {
+                continue;
+            }
+
+            $matchedRules[] = [
+                'selector' => $selector,
+                'specificity' => $this->computeSelectorSpecificity($selector),
+                'sourceOrder' => $sourceOrder++,
+                'declarations' => $materializedDeclarations,
+                'convertedStyles' => $convertedStyles,
+            ];
+        }
+
+        // CSS cascade: higher specificity wins; ties broken by source order.
+        // Sorting ascending so the last applied (highest specificity, latest in
+        // source) is the one whose values survive the merges.
+        usort($matchedRules, static function (array $a, array $b): int {
+            $specificityComparison = self::compareSpecificity($a['specificity'], $b['specificity']);
+            if ($specificityComparison !== 0) {
+                return $specificityComparison;
+            }
+            return $a['sourceOrder'] <=> $b['sourceOrder'];
+        });
+
+        // Track per-property origin so we can surface conflict warnings to the
+        // audit when multiple non-equivalent rules touched the same property.
+        $propertyOrigins = [];
+
+        foreach ($matchedRules as $rule) {
+            $specificity = self::formatSpecificity($rule['specificity']);
+
+            $this->logDebug(sprintf(
+                'Applying styles (specificity=%s, selector=%s): %s',
+                $specificity,
+                $rule['selector'],
+                json_encode($rule['convertedStyles'])
+            ));
+
+            $element['data']['properties'] = $this->mergeProperties(
+                $element['data']['properties'],
+                ['design' => $rule['convertedStyles']]
+            );
+
+            if ($this->styleExtractor->supportsDeclarationsFully($rule['declarations'])) {
+                $this->consumedCssSelectors[$rule['selector']] = true;
+            }
+
+            foreach ($rule['convertedStyles'] as $property => $value) {
+                $serializedValue = is_scalar($value) ? (string) $value : json_encode($value);
+                $existing = $propertyOrigins[$property] ?? null;
+                if ($existing !== null && $existing['value'] !== $serializedValue) {
+                    $this->report->addWarning(sprintf(
+                        'CSS specificity conflict on element %s for property "%s": "%s" from %s (specificity %s) overrode "%s" from %s (specificity %s). Verify the resolved value matches your intent.',
+                        $elementType,
+                        $property,
+                        $serializedValue,
+                        $rule['selector'],
+                        $specificity,
+                        $existing['value'],
+                        $existing['selector'],
+                        $existing['specificity']
+                    ));
                 }
-
-                $this->logDebug(sprintf(
-                    'Applying styles: %s',
-                    json_encode($convertedStyles)
-                ));
-
-                $element['data']['properties'] = $this->mergeProperties(
-                    $element['data']['properties'], ['design' => $convertedStyles]
-                );
-                if ($this->styleExtractor->supportsDeclarationsFully($materializedDeclarations)) {
-                    $this->consumedCssSelectors[$selector] = true;
-                }
-                $matchedCount++;
+                $propertyOrigins[$property] = [
+                    'selector' => $rule['selector'],
+                    'specificity' => $specificity,
+                    'value' => $serializedValue,
+                ];
             }
         }
 
-        $this->logDebug("Total rules matched: $matchedCount");
+        $this->logDebug('Total rules matched: ' . count($matchedRules));
+    }
+
+    /**
+     * CSS specificity per https://www.w3.org/TR/selectors-4/#specificity
+     *
+     * @return array{a:int,b:int,c:int}
+     */
+    private function computeSelectorSpecificity(string $selector): array
+    {
+        $normalized = (string) preg_replace('/\s*[>+~,]\s*/', ' ', $selector);
+        $identifier = '(?:-?[_a-zA-Z]|\\\\[0-9a-fA-F]{1,6}\s?|\\\\.)[_a-zA-Z0-9-]*';
+
+        $attributes = preg_match_all('/\[[^\]]+\]/', $normalized);
+        $withoutAttributes = (string) preg_replace('/\[[^\]]+\]/', ' ', $normalized);
+
+        $ids = preg_match_all('/#' . $identifier . '/', $withoutAttributes);
+        $classes = preg_match_all('/\.' . $identifier . '/', $withoutAttributes);
+        $pseudoClasses = preg_match_all('/(?<!:):' . $identifier . '(?:\([^)]*\))?/', $withoutAttributes);
+        $pseudoElements = preg_match_all('/::' . $identifier . '/', $withoutAttributes);
+
+        $stripped = $withoutAttributes;
+        $stripped = (string) preg_replace('/#' . $identifier . '/', ' ', $stripped);
+        $stripped = (string) preg_replace('/\.' . $identifier . '/', ' ', $stripped);
+        $stripped = (string) preg_replace('/::?' . $identifier . '(?:\([^)]*\))?/', ' ', $stripped);
+        $elements = preg_match_all('/' . $identifier . '/', $stripped);
+
+        $a = (int) $ids;
+        $b = (int) ($classes + $attributes + $pseudoClasses);
+        $c = (int) ($elements + $pseudoElements);
+
+        return ['a' => $a, 'b' => $b, 'c' => $c];
+    }
+
+    /**
+     * @param array{a:int,b:int,c:int} $left
+     * @param array{a:int,b:int,c:int} $right
+     */
+    private static function compareSpecificity(array $left, array $right): int
+    {
+        foreach (['a', 'b', 'c'] as $part) {
+            if ($left[$part] !== $right[$part]) {
+                return $left[$part] <=> $right[$part];
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * @param array{a:int,b:int,c:int} $specificity
+     */
+    private static function formatSpecificity(array $specificity): string
+    {
+        return sprintf('%d,%d,%d', $specificity['a'], $specificity['b'], $specificity['c']);
     }
 
     /**
