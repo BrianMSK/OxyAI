@@ -51,8 +51,8 @@ final class OxygenPageMutationService
         if ($incomingTree === null) {
             return new WP_Error(
                 'oxyai_invalid_oxygen_payload',
-                __('No valid Oxygen element tree was provided. Pass one of: documentTree wrapper ({"root": {...}}), a bare node ({"id":..., "data":..., "children":[...]}), rawJson/json string, or oxygen.element.', 'oxyai-oxygen'),
-                ['status' => 400, 'expectedKeys' => ['documentTree', 'root', 'element', 'rawJson', 'json', 'oxygen']]
+                __('No valid Oxygen element tree was provided. Pass one of: {"documentTree":{"root":{...}}}, {"root":{...}}, {"element":{...}}, rawJson/json string, oxygen.element, or a bare node with data.type plus id and/or children.', 'oxyai-oxygen'),
+                ['status' => 400, 'expectedKeys' => ['documentTree', 'root', 'element', 'rawJson', 'json', 'oxygen', 'data', 'id', 'children']]
             );
         }
 
