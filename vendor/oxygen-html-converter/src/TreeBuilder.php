@@ -739,7 +739,8 @@ class TreeBuilder
             implode(',', $elementClasses) ?: 'none'
         ));
 
-        $matchedCount = 0;
+        $matchedRules = [];
+        $sourceOrder = 0;
 
         foreach ($cssRules as $rule) {
             $selector = trim($rule['selector']);
@@ -754,36 +755,111 @@ class TreeBuilder
                 continue;
             }
 
-            $matched = $this->selectorMatchesElement($selector, $elementClasses, $elementId, $node, $element);
-            if ($matched) {
-                $this->logDebug("Matched selector: $selector");
+            if (!$this->selectorMatchesElement($selector, $elementClasses, $elementId, $node, $element)) {
+                continue;
             }
 
-            if ($matched) {
-                $expandedDeclarations = $this->expandShorthandProperties($rule['declarations']);
-                $materializedDeclarations = $this->filterNeutralFallbackDeclarations($expandedDeclarations);
-                $convertedStyles = $this->styleExtractor->toOxygenProperties($materializedDeclarations);
+            $expandedDeclarations = $this->expandShorthandProperties($rule['declarations']);
+            $materializedDeclarations = $this->filterNeutralFallbackDeclarations($expandedDeclarations);
+            $convertedStyles = $this->styleExtractor->toOxygenProperties($materializedDeclarations);
 
-                if ($convertedStyles === []) {
-                    continue;
+            if ($convertedStyles === []) {
+                continue;
+            }
+
+            $matchedRules[] = [
+                'selector' => $selector,
+                'specificity' => $this->computeSelectorSpecificity($selector),
+                'sourceOrder' => $sourceOrder++,
+                'declarations' => $materializedDeclarations,
+                'convertedStyles' => $convertedStyles,
+            ];
+        }
+
+        // CSS cascade: higher specificity wins; ties broken by source order.
+        // Sorting ascending so the last applied (highest specificity, latest in
+        // source) is the one whose values survive the merges.
+        usort($matchedRules, static function (array $a, array $b): int {
+            if ($a['specificity'] !== $b['specificity']) {
+                return $a['specificity'] <=> $b['specificity'];
+            }
+            return $a['sourceOrder'] <=> $b['sourceOrder'];
+        });
+
+        // Track per-property origin so we can surface conflict warnings to the
+        // audit when multiple non-equivalent rules touched the same property.
+        $propertyOrigins = [];
+
+        foreach ($matchedRules as $rule) {
+            $this->logDebug(sprintf(
+                'Applying styles (specificity=%d, selector=%s): %s',
+                $rule['specificity'],
+                $rule['selector'],
+                json_encode($rule['convertedStyles'])
+            ));
+
+            $element['data']['properties'] = $this->mergeProperties(
+                $element['data']['properties'],
+                ['design' => $rule['convertedStyles']]
+            );
+
+            if ($this->styleExtractor->supportsDeclarationsFully($rule['declarations'])) {
+                $this->consumedCssSelectors[$rule['selector']] = true;
+            }
+
+            foreach ($rule['convertedStyles'] as $property => $value) {
+                $serializedValue = is_scalar($value) ? (string) $value : json_encode($value);
+                $existing = $propertyOrigins[$property] ?? null;
+                if ($existing !== null && $existing['value'] !== $serializedValue) {
+                    $this->report->addWarning(sprintf(
+                        'CSS specificity conflict on element %s for property "%s": "%s" from %s (specificity %d) overrode "%s" from %s (specificity %d). Verify the resolved value matches your intent.',
+                        $elementType,
+                        $property,
+                        $serializedValue,
+                        $rule['selector'],
+                        $rule['specificity'],
+                        $existing['value'],
+                        $existing['selector'],
+                        $existing['specificity']
+                    ));
                 }
-
-                $this->logDebug(sprintf(
-                    'Applying styles: %s',
-                    json_encode($convertedStyles)
-                ));
-
-                $element['data']['properties'] = $this->mergeProperties(
-                    $element['data']['properties'], ['design' => $convertedStyles]
-                );
-                if ($this->styleExtractor->supportsDeclarationsFully($materializedDeclarations)) {
-                    $this->consumedCssSelectors[$selector] = true;
-                }
-                $matchedCount++;
+                $propertyOrigins[$property] = [
+                    'selector' => $rule['selector'],
+                    'specificity' => $rule['specificity'],
+                    'value' => $serializedValue,
+                ];
             }
         }
 
-        $this->logDebug("Total rules matched: $matchedCount");
+        $this->logDebug('Total rules matched: ' . count($matchedRules));
+    }
+
+    /**
+     * CSS specificity per https://www.w3.org/TR/selectors-4/#specificity
+     * Encoded into one comparable int: a * 10000 + b * 100 + c.
+     */
+    private function computeSelectorSpecificity(string $selector): int
+    {
+        $normalized = (string) preg_replace('/\s*[>+~,]\s*/', ' ', $selector);
+
+        $ids = preg_match_all('/#[a-zA-Z][\w-]*/', $normalized);
+        $classes = preg_match_all('/\.[a-zA-Z][\w-]*/', $normalized);
+        $attributes = preg_match_all('/\[[^\]]+\]/', $normalized);
+        $pseudoClasses = preg_match_all('/(?<!:):[a-zA-Z][\w-]*(?:\([^)]*\))?/', $normalized);
+        $pseudoElements = preg_match_all('/::[a-zA-Z][\w-]*/', $normalized);
+
+        $stripped = $normalized;
+        $stripped = (string) preg_replace('/#[a-zA-Z][\w-]*/', ' ', $stripped);
+        $stripped = (string) preg_replace('/\.[a-zA-Z][\w-]*/', ' ', $stripped);
+        $stripped = (string) preg_replace('/\[[^\]]+\]/', ' ', $stripped);
+        $stripped = (string) preg_replace('/::?[a-zA-Z][\w-]*(?:\([^)]*\))?/', ' ', $stripped);
+        $elements = preg_match_all('/[a-zA-Z][\w-]*/', $stripped);
+
+        $a = (int) $ids;
+        $b = (int) ($classes + $attributes + $pseudoClasses);
+        $c = (int) ($elements + $pseudoElements);
+
+        return $a * 10000 + $b * 100 + $c;
     }
 
     /**
