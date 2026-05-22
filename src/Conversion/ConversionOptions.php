@@ -13,6 +13,10 @@ final class ConversionOptions
     public function normalize(array $input): array
     {
         $startingNodeId = isset($input['startingNodeId']) ? (int) $input['startingNodeId'] : 1;
+        $mapCssToProperties = $this->bool($input['mapCssToProperties'] ?? false, false);
+        $preserveStyleBlockCss = array_key_exists('preserveStyleBlockCss', $input)
+            ? $this->bool($input['preserveStyleBlockCss'], true)
+            : !$mapCssToProperties;
 
         return [
             'startingNodeId' => max(1, $startingNodeId),
@@ -22,6 +26,8 @@ final class ConversionOptions
             'safeMode' => $this->bool($input['safeMode'] ?? false, false),
             'debugMode' => $this->bool($input['debugMode'] ?? false, false),
             'useSelectors' => $this->bool($input['useSelectors'] ?? false, false),
+            'preserveStyleBlockCss' => $preserveStyleBlockCss,
+            'mapCssToProperties' => $mapCssToProperties,
         ];
     }
 

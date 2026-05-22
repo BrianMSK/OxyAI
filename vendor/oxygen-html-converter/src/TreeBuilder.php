@@ -58,6 +58,15 @@ class TreeBuilder
     private bool $inlineStyles = true;  // NEW: Force all styles inline instead of CSS Code
     private bool $debugMode = false;     // NEW: Enable debug logging
     private bool $safeMode = false;
+    /**
+     * When true (the default), CSS rules that are mapped to native Oxygen
+     * element properties are ALSO kept in the CssCode element so the
+     * authoritative source CSS survives intact. When false, the legacy
+     * behavior strips consumed rules from the CssCode element (only safe
+     * when the consumer is sure the property mapping will compile to the
+     * stylesheet — see Bug 5 in the 2026-05-22 MCP report).
+     */
+    private bool $preserveStyleBlockCss = true;
     private ?bool $preferEssentialElements = null;
     private int $nodeIdCounter = 1;
     private string $extractedCss = '';
@@ -217,9 +226,17 @@ class TreeBuilder
             ];
         }
 
-        // Keep stateful/animation CSS as fallback, but prune rules that were
-        // fully materialized into native Oxygen properties.
-        $this->extractedCss = $this->cleanupConsumedCssRules($this->extractedCss);
+        // When preserveStyleBlockCss is true (the new default), keep the
+        // source CSS intact in the CssCode element even when individual
+        // rules were also materialized into native Oxygen properties. This
+        // is a defense against Bug 5 in the 2026-05-22 MCP report: element
+        // design properties are not always compiled to the generated
+        // stylesheet, so stripping the source rule could leave the element
+        // entirely unstyled. The selector list is still surfaced in the
+        // result for audit (see "redistributedCssSelectors").
+        if (!$this->preserveStyleBlockCss) {
+            $this->extractedCss = $this->cleanupConsumedCssRules($this->extractedCss);
+        }
 
         // Create CSS Code element if we have extracted CSS
         $cssElement = null;
@@ -259,6 +276,8 @@ class TreeBuilder
             'iconScriptElements' => $iconScriptElements,
             'detectedIconLibraries' => $this->detectedIconLibraries,
             'extractedCss' => $this->extractedCss,
+            'redistributedCssSelectors' => array_keys($this->consumedCssSelectors),
+            'preserveStyleBlockCss' => $this->preserveStyleBlockCss,
             'customClasses' => array_unique($this->customClasses),
             'stats' => $this->report->toArray(),
         ];
@@ -1188,6 +1207,16 @@ class TreeBuilder
     public function setDebugMode(bool $enabled): void
     {
         $this->debugMode = $enabled;
+    }
+
+    /**
+     * Control whether CSS rules consumed by element-property mapping are also
+     * kept in the CssCode element. Default true (preserve). Set false to
+     * restore the legacy strip-on-consume behavior.
+     */
+    public function setPreserveStyleBlockCss(bool $enabled): void
+    {
+        $this->preserveStyleBlockCss = $enabled;
     }
 
     /**

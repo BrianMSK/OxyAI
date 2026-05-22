@@ -46,6 +46,15 @@ class TreeBuilderFactory
         $builder->setInlineStyles(!empty($options['inlineStyles']));
         $builder->setSafeMode(!empty($options['safeMode']));
         $builder->setDebugMode(!empty($options['debugMode']));
+
+        // Default is to preserve CSS in the CssCode element even when rules
+        // are also mapped to element properties. Callers can opt back in to
+        // the legacy strip-on-consume behavior by setting mapCssToProperties.
+        $preserve = array_key_exists('preserveStyleBlockCss', $options)
+            ? !empty($options['preserveStyleBlockCss'])
+            : !($options['mapCssToProperties'] ?? false);
+        $builder->setPreserveStyleBlockCss($preserve);
+
         $builder->enableValidation();
     }
 }
