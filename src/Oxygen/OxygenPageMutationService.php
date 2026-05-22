@@ -133,6 +133,18 @@ final class OxygenPageMutationService
         }
 
         $tree = is_array($backup['tree'] ?? null) ? $backup['tree'] : null;
+
+        if ($tree !== null) {
+            $corruptedTypes = $this->findCorruptedTypes($tree);
+            if ($corruptedTypes !== []) {
+                return new WP_Error(
+                    'oxyai_backup_corrupted',
+                    __('This backup is corrupted: element type names are missing namespace separators (likely from a pre-fix wp_unslash on the meta store). Restoring would replace the page with unresolvable elements. Aborting.', 'oxyai-oxygen'),
+                    ['status' => 422, 'corruptedTypes' => array_values(array_unique($corruptedTypes))]
+                );
+            }
+        }
+
         if ($tree === null) {
             $this->deleteTree($postId);
         } else {
@@ -505,9 +517,63 @@ final class OxygenPageMutationService
             'nodeCount' => $tree !== null ? $this->countTreeNodes($tree) : 0,
         ]);
 
-        update_post_meta($postId, self::BACKUPS_META_KEY, array_slice($backups, 0, self::MAX_BACKUPS));
+        $payload = array_slice($backups, 0, self::MAX_BACKUPS);
+
+        // wp_unslash() inside update_metadata() would strip the backslash from
+        // element type names like "OxygenElements\Container", producing the
+        // unresolvable "OxygenElementsContainer" on restore. wp_slash() makes
+        // that unslash a round-trip.
+        update_post_meta($postId, self::BACKUPS_META_KEY, wp_slash($payload));
 
         return $backupId;
+    }
+
+    /**
+     * Returns the list of corrupted type strings found in the tree.
+     * A type is considered corrupted when it includes the "Elements" namespace
+     * segment but has no backslash, e.g. "OxygenElementsContainer" instead of
+     * "OxygenElements\\Container".
+     *
+     * @param array<string, mixed> $tree
+     * @return array<int, string>
+     */
+    private function findCorruptedTypes(array $tree): array
+    {
+        $corrupted = [];
+        $this->collectCorruptedTypes($tree['root'] ?? $tree, $corrupted);
+        return $corrupted;
+    }
+
+    /**
+     * @param mixed $node
+     * @param array<int, string> $corrupted
+     */
+    private function collectCorruptedTypes($node, array &$corrupted): void
+    {
+        if (!is_array($node)) {
+            return;
+        }
+
+        $type = $node['data']['type'] ?? null;
+        if (is_string($type) && $type !== '' && $this->isCorruptedTypeName($type)) {
+            $corrupted[] = $type;
+        }
+
+        $children = $node['children'] ?? [];
+        if (is_array($children)) {
+            foreach ($children as $child) {
+                $this->collectCorruptedTypes($child, $corrupted);
+            }
+        }
+    }
+
+    private function isCorruptedTypeName(string $type): bool
+    {
+        if (str_contains($type, '\\')) {
+            return false;
+        }
+
+        return (bool) preg_match('/[A-Z][a-z]+Elements[A-Z]/', $type);
     }
 
     /**
