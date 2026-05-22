@@ -90,6 +90,10 @@ final class OxygenPageMutationService
         $this->writeTree($postId, $newTree);
         $this->refreshCaches($postId);
 
+        if (!empty($options['recompile'])) {
+            $result['recompile'] = $this->recompileCss($postId);
+        }
+
         $result['backupId'] = $backupId;
         $result['message'] = __('Oxygen page tree updated. A restore backup was created.', 'oxyai-oxygen');
 
@@ -541,13 +545,130 @@ final class OxygenPageMutationService
 
     private function refreshCaches(int $postId): void
     {
-        $prefix = $this->metaPrefix();
-        delete_post_meta($postId, $prefix . 'dependency_cache');
-        delete_post_meta($postId, $prefix . 'css_file_paths_cache');
-        clean_post_cache($postId);
+        $this->invalidateOxygenCaches($postId);
 
         if (is_callable('\\Breakdance\\Render\\generateCacheForPost')) {
             call_user_func('\\Breakdance\\Render\\generateCacheForPost', $postId);
         }
+    }
+
+    /**
+     * Best-effort full CSS recompile. The default refreshCaches() invalidates
+     * the cache meta and asks Breakdance to regenerate, but the on-disk
+     * stylesheet at uploads/oxygen/css/post-{id}.css is not always rewritten.
+     * This method:
+     *   - busts every known Oxygen/Breakdance cache meta
+     *   - removes the on-disk compiled stylesheet so the next render writes
+     *     a fresh one
+     *   - tries every known rebuild entry point exposed by
+     *     Oxygen 6 / Breakdance Oxygen
+     *   - fires an action so site code can hook custom regeneration
+     *
+     * @return array<string, mixed>
+     */
+    public function recompileCss(int $postId): array
+    {
+        $post = get_post($postId);
+        if (!$post) {
+            return [
+                'success' => false,
+                'postId' => $postId,
+                'message' => 'Page not found.',
+            ];
+        }
+
+        $this->invalidateOxygenCaches($postId);
+        $removedFiles = $this->removeCompiledCssFiles($postId);
+        $invokedRebuilders = $this->invokeKnownRebuilders($postId);
+
+        do_action('oxyai_oxygen_recompile_css', $postId);
+
+        return [
+            'success' => true,
+            'postId' => $postId,
+            'removedFiles' => $removedFiles,
+            'invokedRebuilders' => $invokedRebuilders,
+            'message' => __('Best-effort CSS recompile triggered. Verify the page in the browser before reporting success.', 'oxyai-oxygen'),
+        ];
+    }
+
+    private function invalidateOxygenCaches(int $postId): void
+    {
+        $prefix = $this->metaPrefix();
+        $cacheSuffixes = [
+            'dependency_cache',
+            'css_file_paths_cache',
+            'dynamic_css',
+            'oxy_css_cache',
+            'css_cache',
+            'render_cache',
+            'global_settings_cache',
+        ];
+
+        foreach ($cacheSuffixes as $suffix) {
+            delete_post_meta($postId, $prefix . $suffix);
+        }
+
+        clean_post_cache($postId);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function removeCompiledCssFiles(int $postId): array
+    {
+        $removed = [];
+        $upload = wp_upload_dir();
+        $base = isset($upload['basedir']) && is_string($upload['basedir']) ? $upload['basedir'] : '';
+        if ($base === '') {
+            return $removed;
+        }
+
+        $candidates = [
+            $base . '/oxygen/css/post-' . $postId . '.css',
+            $base . '/oxygen/css/universal.css',
+            $base . '/breakdance/oxygen/css/post-' . $postId . '.css',
+        ];
+
+        $candidates = apply_filters('oxyai_oxygen_compiled_css_paths', $candidates, $postId);
+
+        foreach ($candidates as $path) {
+            if (!is_string($path) || $path === '' || !file_exists($path) || !is_writable($path)) {
+                continue;
+            }
+            if (@unlink($path)) {
+                $removed[] = $path;
+            }
+        }
+
+        return $removed;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function invokeKnownRebuilders(int $postId): array
+    {
+        $invoked = [];
+        $rebuilders = apply_filters('oxyai_oxygen_css_rebuilders', [
+            '\\Breakdance\\Render\\generateCacheForPost',
+            '\\Breakdance\\Render\\refreshDynamicCssForPost',
+            '\\Breakdance\\Render\\regenerateStylesForPost',
+            '\\Breakdance\\Compile\\regenerateCssForPost',
+        ], $postId);
+
+        foreach ($rebuilders as $callable) {
+            if (!is_string($callable) || !is_callable($callable)) {
+                continue;
+            }
+            try {
+                call_user_func($callable, $postId);
+                $invoked[] = $callable;
+            } catch (\Throwable $exception) {
+                do_action('oxyai_oxygen_recompile_exception', $exception, $postId, $callable);
+            }
+        }
+
+        return $invoked;
     }
 }
