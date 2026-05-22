@@ -90,7 +90,8 @@ final class OxygenPageMutationService
         $this->writeTree($postId, $newTree);
         $this->refreshCaches($postId);
 
-        if (!empty($options['recompile'])) {
+        $shouldRecompile = !empty($options['recompile']) || !empty($options['options']['recompile']);
+        if ($shouldRecompile) {
             $result['recompile'] = $this->recompileCss($postId);
         }
 
@@ -564,17 +565,13 @@ final class OxygenPageMutationService
      *     Oxygen 6 / Breakdance Oxygen
      *   - fires an action so site code can hook custom regeneration
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed>|\WP_Error
      */
-    public function recompileCss(int $postId): array
+    public function recompileCss(int $postId)
     {
         $post = get_post($postId);
         if (!$post) {
-            return [
-                'success' => false,
-                'postId' => $postId,
-                'message' => 'Page not found.',
-            ];
+            return new WP_Error('oxyai_page_not_found', __('Page not found.', 'oxyai-oxygen'), ['status' => 404]);
         }
 
         $this->invalidateOxygenCaches($postId);
@@ -626,18 +623,20 @@ final class OxygenPageMutationService
 
         $candidates = [
             $base . '/oxygen/css/post-' . $postId . '.css',
-            $base . '/oxygen/css/universal.css',
             $base . '/breakdance/oxygen/css/post-' . $postId . '.css',
         ];
 
-        $candidates = apply_filters('oxyai_oxygen_compiled_css_paths', $candidates, $postId);
+        $filtered = apply_filters('oxyai_oxygen_compiled_css_paths', $candidates, $postId);
+        $candidates = is_array($filtered) ? $filtered : $candidates;
 
         foreach ($candidates as $path) {
-            if (!is_string($path) || $path === '' || !file_exists($path) || !is_writable($path)) {
+            if (!is_string($path) || $path === '' || !file_exists($path)) {
                 continue;
             }
-            if (@unlink($path)) {
-                $removed[] = $path;
+            if (wp_delete_file($path)) {
+                $removed[] = $this->relativeUploadPath($base, $path);
+            } else {
+                do_action('oxyai_oxygen_compiled_css_delete_failed', $path, $postId);
             }
         }
 
@@ -650,12 +649,14 @@ final class OxygenPageMutationService
     private function invokeKnownRebuilders(int $postId): array
     {
         $invoked = [];
-        $rebuilders = apply_filters('oxyai_oxygen_css_rebuilders', [
+        $defaultRebuilders = [
             '\\Breakdance\\Render\\generateCacheForPost',
             '\\Breakdance\\Render\\refreshDynamicCssForPost',
             '\\Breakdance\\Render\\regenerateStylesForPost',
             '\\Breakdance\\Compile\\regenerateCssForPost',
-        ], $postId);
+        ];
+        $filtered = apply_filters('oxyai_oxygen_css_rebuilders', $defaultRebuilders, $postId);
+        $rebuilders = is_array($filtered) ? $filtered : $defaultRebuilders;
 
         foreach ($rebuilders as $callable) {
             if (!is_string($callable) || !is_callable($callable)) {
@@ -670,5 +671,13 @@ final class OxygenPageMutationService
         }
 
         return $invoked;
+    }
+
+    private function relativeUploadPath(string $base, string $path): string
+    {
+        $base = rtrim(wp_normalize_path($base), '/') . '/';
+        $path = wp_normalize_path($path);
+
+        return str_starts_with($path, $base) ? substr($path, strlen($base)) : basename($path);
     }
 }
