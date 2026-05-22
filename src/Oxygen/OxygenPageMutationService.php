@@ -325,11 +325,23 @@ final class OxygenPageMutationService
                 return new WP_Error('oxyai_invalid_oxygen_payload', __('Converted Oxygen tree has no root node.', 'oxyai-oxygen'), ['status' => 400]);
             }
 
+            $beforeFingerprint = $this->fingerprintNonTargetNodes($tree, $targetNodeId);
+
             $nextId = $this->calculateNextNodeId($tree['root'] ?? []);
             $this->reindexElementTreePreservingRoot($incomingRoot, $targetNodeId, $nextId);
 
             if (!$this->replaceNode($tree['root'], $targetNodeId, $incomingRoot)) {
                 return new WP_Error('oxyai_target_node_not_found', __('Target node was not found in the Oxygen tree.', 'oxyai-oxygen'), ['status' => 404]);
+            }
+
+            $afterFingerprint = $this->fingerprintNonTargetNodes($tree, $targetNodeId);
+            $diff = $this->diffNodeFingerprints($beforeFingerprint, $afterFingerprint);
+            if ($diff !== []) {
+                return new WP_Error(
+                    'oxyai_replace_node_unscoped',
+                    __('replace_node modified or removed nodes outside the target subtree. Aborting to prevent page corruption. Use operation=replace to rewrite the whole tree, or report this with the changedNodes data.', 'oxyai-oxygen'),
+                    ['status' => 500, 'targetNodeId' => $targetNodeId, 'changedNodes' => $diff]
+                );
             }
 
             return $this->normalizeDocumentTree($tree);
@@ -494,6 +506,94 @@ final class OxygenPageMutationService
         $element['children'] = $children;
 
         return $nextId;
+    }
+
+    /**
+     * Walk the tree and collect a fingerprint for every node OUTSIDE the
+     * target subtree. Used to detect when replace_node corrupts the rest
+     * of the page.
+     *
+     * @param array<string, mixed> $tree
+     * @return array<string, string>
+     */
+    private function fingerprintNonTargetNodes(array $tree, int $targetNodeId): array
+    {
+        $fingerprints = [];
+        $this->collectNodeFingerprints($tree['root'] ?? [], $targetNodeId, $fingerprints, 'root');
+        return $fingerprints;
+    }
+
+    /**
+     * @param mixed $node
+     * @param array<string, string> $fingerprints
+     */
+    private function collectNodeFingerprints($node, int $skipSubtreeId, array &$fingerprints, string $path): void
+    {
+        if (!is_array($node)) {
+            return;
+        }
+
+        $nodeId = isset($node['id']) && is_numeric($node['id']) ? (int) $node['id'] : 0;
+        $nodeKey = $path . '#id=' . ($nodeId > 0 ? (string) $nodeId : 'missing');
+
+        if ($nodeId === $skipSubtreeId) {
+            return;
+        }
+
+        $children = $node['children'] ?? [];
+        $childLinks = [];
+        if (is_array($children)) {
+            foreach ($children as $index => $child) {
+                if (!is_array($child)) {
+                    $childLinks[] = $index . ':non-node';
+                    continue;
+                }
+
+                $childId = isset($child['id']) && is_numeric($child['id']) ? (int) $child['id'] : 0;
+                $childLinks[] = $index . ':' . ($childId > 0 ? (string) $childId : 'missing');
+            }
+        }
+
+        $shallow = $node;
+        unset($shallow['children']);
+        $shallow['_oxyai_child_links'] = $childLinks;
+        $fingerprints[$nodeKey] = md5(serialize($shallow));
+
+        if (!is_array($children)) {
+            return;
+        }
+
+        foreach ($children as $index => $child) {
+            $this->collectNodeFingerprints($child, $skipSubtreeId, $fingerprints, $path . '.children[' . $index . ']');
+        }
+    }
+
+    /**
+     * @param array<string, string> $before
+     * @param array<string, string> $after
+     * @return array<int, array<string, mixed>>
+     */
+    private function diffNodeFingerprints(array $before, array $after): array
+    {
+        $changes = [];
+        foreach ($before as $nodeKey => $hash) {
+            if (!array_key_exists($nodeKey, $after)) {
+                $changes[] = ['nodeKey' => $nodeKey, 'change' => 'removed'];
+                continue;
+            }
+            if ($after[$nodeKey] !== $hash) {
+                $changes[] = ['nodeKey' => $nodeKey, 'change' => 'modified'];
+            }
+        }
+        foreach ($after as $nodeKey => $hash) {
+            if (!array_key_exists($nodeKey, $before)) {
+                $changes[] = ['nodeKey' => $nodeKey, 'change' => 'added_outside_target'];
+            }
+        }
+
+        usort($changes, static fn (array $a, array $b): int => [$a['nodeKey'] ?? '', $a['change'] ?? ''] <=> [$b['nodeKey'] ?? '', $b['change'] ?? '']);
+
+        return $changes;
     }
 
     /**
