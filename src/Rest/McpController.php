@@ -58,10 +58,18 @@ final class McpController
         $input = $request->get_param('input');
         $input = is_array($input) ? $input : [];
 
+        if ($this->shouldBlockUnsafeEncodedApply($tool, $input, $encodingWarnings)) {
+            return $this->error(new WP_Error(
+                'oxyai_non_ascii_payload_blocked',
+                __('Raw non-ASCII bytes are not accepted for live apply_* MCP writes. Retry with dryRun=true or send non-ASCII characters as JSON unicode escapes (\\uXXXX).', 'oxyai-oxygen'),
+                ['status' => 400, 'mcpWarnings' => $encodingWarnings]
+            ));
+        }
+
         $result = $this->callTool($tool, $input);
 
         if (is_wp_error($result)) {
-            return $this->error($result);
+            return $this->error($this->errorWithWarnings($result, $encodingWarnings));
         }
 
         if ($result instanceof \OxyAI\Oxygen\Source\SourceBundle) {
@@ -107,10 +115,29 @@ final class McpController
             return $payload;
         }
 
-        $existing = isset($payload['warnings']) && is_array($payload['warnings']) ? $payload['warnings'] : [];
-        $payload['warnings'] = array_merge($existing, $warnings);
+        $existing = isset($payload['mcpWarnings']) && is_array($payload['mcpWarnings']) ? $payload['mcpWarnings'] : [];
+        $payload['mcpWarnings'] = array_merge($existing, $warnings);
 
         return $payload;
+    }
+
+    /**
+     * @param array<int, array<string, string>> $warnings
+     */
+    private function errorWithWarnings(WP_Error $error, array $warnings): WP_Error
+    {
+        if ($warnings === []) {
+            return $error;
+        }
+
+        $data = $error->get_error_data();
+        $data = is_array($data) ? $data : ['data' => $data];
+        $data['mcpWarnings'] = array_merge(
+            isset($data['mcpWarnings']) && is_array($data['mcpWarnings']) ? $data['mcpWarnings'] : [],
+            $warnings
+        );
+
+        return new WP_Error($error->get_error_code(), $error->get_error_message(), $data);
     }
 
     /**
@@ -143,9 +170,18 @@ final class McpController
         if ($method === 'tools/call') {
             $name = (string) ($params['name'] ?? '');
             $arguments = is_array($params['arguments'] ?? null) ? $params['arguments'] : [];
+
+            if ($this->shouldBlockUnsafeEncodedApply($name, $arguments, $encodingWarnings)) {
+                return $this->ok($this->jsonRpcError($id, -32000, __('Raw non-ASCII bytes are not accepted for live apply_* MCP writes. Retry with dryRun=true or send non-ASCII characters as JSON unicode escapes (\\uXXXX).', 'oxyai-oxygen'), [
+                    'status' => 400,
+                    'mcpWarnings' => $encodingWarnings,
+                ]));
+            }
+
             $result = $this->callTool($name, $arguments);
 
             if (is_wp_error($result)) {
+                $result = $this->errorWithWarnings($result, $encodingWarnings);
                 return $this->ok($this->jsonRpcError($id, -32000, $result->get_error_message(), $result->get_error_data()));
             }
 
@@ -170,6 +206,20 @@ final class McpController
         }
 
         return $this->ok($this->jsonRpcError($id, -32601, 'Method not found.'));
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @param array<int, array<string, string>> $encodingWarnings
+     */
+    private function shouldBlockUnsafeEncodedApply(string $tool, array $input, array $encodingWarnings): bool
+    {
+        if ($encodingWarnings === [] || !in_array($tool, ['apply_html_to_oxygen_page', 'apply_oxygen_json_to_page'], true)) {
+            return false;
+        }
+
+        $dryRun = $input['dryRun'] ?? ($input['options']['dryRun'] ?? false);
+        return empty($dryRun);
     }
 
     /**
