@@ -47,32 +47,104 @@ final class McpController
 
     public function handle(WP_REST_Request $request)
     {
+        $encodingWarnings = $this->inspectRequestEncoding($request);
+
         $json = $request->get_json_params();
         if (is_array($json) && isset($json['jsonrpc'], $json['method'])) {
-            return $this->handleJsonRpc($json);
+            return $this->handleJsonRpc($json, $encodingWarnings);
         }
 
         $tool = (string) $request->get_param('tool');
         $input = $request->get_param('input');
         $input = is_array($input) ? $input : [];
 
+        if ($this->shouldBlockUnsafeEncodedApply($tool, $input, $encodingWarnings)) {
+            return $this->error(new WP_Error(
+                'oxyai_non_ascii_payload_blocked',
+                __('Raw non-ASCII bytes are not accepted for live apply_* MCP writes. Retry with dryRun=true or send non-ASCII characters as JSON unicode escapes (\\uXXXX).', 'oxyai-oxygen'),
+                ['status' => 400, 'mcpWarnings' => $encodingWarnings]
+            ));
+        }
+
         $result = $this->callTool($tool, $input);
 
         if (is_wp_error($result)) {
-            return $this->error($result);
+            return $this->error($this->errorWithWarnings($result, $encodingWarnings));
         }
 
         if ($result instanceof \OxyAI\Oxygen\Source\SourceBundle) {
-            return $this->ok(['success' => true, 'source' => $result->toArray()]);
+            return $this->ok($this->attachWarnings(['success' => true, 'source' => $result->toArray()], $encodingWarnings));
+        }
+
+        if (is_array($result)) {
+            $result = $this->attachWarnings($result, $encodingWarnings);
         }
 
         return $this->ok($result);
     }
 
     /**
-     * @param array<string, mixed> $request
+     * @return array<int, array<string, string>>
      */
-    private function handleJsonRpc(array $request)
+    private function inspectRequestEncoding(WP_REST_Request $request): array
+    {
+        $body = (string) $request->get_body();
+        if ($body === '' || preg_match('/[^\x00-\x7F]/', $body) !== 1) {
+            return [];
+        }
+
+        $warning = [
+            'code' => 'non_ascii_payload',
+            'severity' => 'warning',
+            'message' => 'Request body contains raw non-ASCII bytes. WordPress storage paths can double-encode these and corrupt diacritics. Send non-ASCII characters as JSON unicode escapes (\\uXXXX) in html, css, js, and oxygen fields.',
+        ];
+
+        do_action('oxyai_oxygen_mcp_non_ascii_input', $body);
+
+        return [$warning];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<int, array<string, string>> $warnings
+     * @return array<string, mixed>
+     */
+    private function attachWarnings(array $payload, array $warnings): array
+    {
+        if ($warnings === []) {
+            return $payload;
+        }
+
+        $existing = isset($payload['mcpWarnings']) && is_array($payload['mcpWarnings']) ? $payload['mcpWarnings'] : [];
+        $payload['mcpWarnings'] = array_merge($existing, $warnings);
+
+        return $payload;
+    }
+
+    /**
+     * @param array<int, array<string, string>> $warnings
+     */
+    private function errorWithWarnings(WP_Error $error, array $warnings): WP_Error
+    {
+        if ($warnings === []) {
+            return $error;
+        }
+
+        $data = $error->get_error_data();
+        $data = is_array($data) ? $data : ['data' => $data];
+        $data['mcpWarnings'] = array_merge(
+            isset($data['mcpWarnings']) && is_array($data['mcpWarnings']) ? $data['mcpWarnings'] : [],
+            $warnings
+        );
+
+        return new WP_Error($error->get_error_code(), $error->get_error_message(), $data);
+    }
+
+    /**
+     * @param array<string, mixed> $request
+     * @param array<int, array<string, string>> $encodingWarnings
+     */
+    private function handleJsonRpc(array $request, array $encodingWarnings = [])
     {
         $id = $request['id'] ?? null;
         $method = (string) ($request['method'] ?? '');
@@ -98,14 +170,27 @@ final class McpController
         if ($method === 'tools/call') {
             $name = (string) ($params['name'] ?? '');
             $arguments = is_array($params['arguments'] ?? null) ? $params['arguments'] : [];
+
+            if ($this->shouldBlockUnsafeEncodedApply($name, $arguments, $encodingWarnings)) {
+                return $this->ok($this->jsonRpcError($id, -32000, __('Raw non-ASCII bytes are not accepted for live apply_* MCP writes. Retry with dryRun=true or send non-ASCII characters as JSON unicode escapes (\\uXXXX).', 'oxyai-oxygen'), [
+                    'status' => 400,
+                    'mcpWarnings' => $encodingWarnings,
+                ]));
+            }
+
             $result = $this->callTool($name, $arguments);
 
             if (is_wp_error($result)) {
+                $result = $this->errorWithWarnings($result, $encodingWarnings);
                 return $this->ok($this->jsonRpcError($id, -32000, $result->get_error_message(), $result->get_error_data()));
             }
 
             if ($result instanceof \OxyAI\Oxygen\Source\SourceBundle) {
                 $result = ['success' => true, 'source' => $result->toArray()];
+            }
+
+            if (is_array($result)) {
+                $result = $this->attachWarnings($result, $encodingWarnings);
             }
 
             return $this->ok($this->jsonRpcResult($id, [
@@ -121,6 +206,20 @@ final class McpController
         }
 
         return $this->ok($this->jsonRpcError($id, -32601, 'Method not found.'));
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @param array<int, array<string, string>> $encodingWarnings
+     */
+    private function shouldBlockUnsafeEncodedApply(string $tool, array $input, array $encodingWarnings): bool
+    {
+        if ($encodingWarnings === [] || !in_array($tool, ['apply_html_to_oxygen_page', 'apply_oxygen_json_to_page'], true)) {
+            return false;
+        }
+
+        $dryRun = $input['dryRun'] ?? ($input['options']['dryRun'] ?? false);
+        return empty($dryRun);
     }
 
     /**
