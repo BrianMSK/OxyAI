@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OxyAI\Oxygen\Codex;
+
+use OxyAI\Oxygen\Presets\PresetStore;
+
+final class PromptInstructionService
+{
+    public function __construct(private readonly PresetStore $presets)
+    {
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getInstructions(): array
+    {
+        return [
+            'name' => 'OxyAI Oxygen Codex Instructions',
+            'goal' => 'Generate or adapt HTML, CSS, and JavaScript that converts cleanly into native Oxygen 6 builder elements.',
+            'rules' => [
+                'Return separate html, css, and js strings.',
+                'Use one logical HTML root for sections and components.',
+                'Prefer semantic HTML and readable class names.',
+                'Keep CSS class-based; avoid framework-only directives unless the user asks for them.',
+                'Keep JavaScript minimal and progressive.',
+                'Do not include PHP, WordPress loops, shortcodes, dynamic bindings, forms, or server-side code unless explicitly supported by the target context.',
+                'Preserve stable classes, links, content, and image intent when editing an existing target.',
+                'If styles use media queries, pseudo selectors, keyframes, or complex selectors, keep them in CSS so the converter can preserve them in CSS Code.',
+                'Use dryRun=true before direct page writes when the user has not explicitly approved applying content.',
+                'Prefer append for new sections, replace_node for selected static elements, and replace only when the user explicitly wants to overwrite the page tree.',
+            ],
+            'mcpWorkflow' => [
+                'Inspect pages with list_oxygen_pages and get_page_context.',
+                'Generate HTML/CSS/JS, then call preview_conversion or convert_html_to_oxygen.',
+                'For user-reviewed insertion, call convert_and_stage_page so the Oxygen sidebar can apply the handoff.',
+                'For direct insertion, call apply_html_to_oxygen_page with operation append, replace_node, or replace. OxyAI creates a restore backup automatically.',
+                'Use list_oxygen_page_backups and restore_oxygen_page_backup to undo a direct write.',
+            ],
+            'outputSchema' => [
+                'html' => 'string',
+                'css' => 'string',
+                'js' => 'string',
+                'meta' => [
+                    'page_type' => 'section|page|subtree',
+                    'root_selector' => 'string',
+                    'notes' => ['string'],
+                ],
+            ],
+            'presets' => $this->presets->all(),
+        ];
+    }
+}

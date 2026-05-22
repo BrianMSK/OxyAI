@@ -1,0 +1,444 @@
+#oxyai-builder-launch {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 999997;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #155eef;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.22);
+}
+
+.oxyai-builder-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999998;
+  pointer-events: none;
+  background: transparent;
+}
+
+.oxyai-builder-dialog {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(460px, 94vw);
+  height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
+  padding: 22px;
+  border-left: 1px solid #d8dee8;
+  border-radius: 0;
+  background: #fff;
+  color: #111827 !important;
+  pointer-events: auto;
+  box-shadow: -18px 0 42px rgba(15, 23, 42, 0.18);
+}
+
+.oxyai-builder-head,
+.oxyai-builder-actions,
+.oxyai-builder-options,
+.oxyai-builder-modes {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.oxyai-builder-head p {
+  margin: 0 0 4px;
+  color: #155eef;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.oxyai-builder-head h2 {
+  margin: 0;
+}
+
+.oxyai-builder-head button {
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.oxyai-builder-modes {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 6px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f6f8fb;
+}
+
+.oxyai-builder-modes button {
+  border: 0;
+  border-radius: 7px;
+  padding: 8px 11px;
+  background: transparent;
+  color: #5b6678;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.oxyai-builder-modes button.is-active {
+  background: #155eef;
+  color: #fff;
+}
+
+.oxyai-builder-help {
+  margin: 12px 0 0;
+  color: #5b6678;
+}
+
+.oxyai-builder-chat {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.oxyai-builder-chat[hidden] {
+  display: none;
+}
+
+.oxyai-builder-target {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.oxyai-builder-target span {
+  display: block;
+  margin-bottom: 4px;
+  color: #155eef;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.oxyai-builder-target-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.oxyai-builder-target-actions select,
+.oxyai-builder-target-actions button,
+.oxyai-builder-chat-input button {
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.oxyai-builder-chat-log {
+  display: grid;
+  gap: 10px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.oxyai-chat-empty {
+  color: #5b6678;
+}
+
+.oxyai-chat-message {
+  max-width: 88%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eef4ff;
+}
+
+.oxyai-chat-message p {
+  margin: 4px 0 0;
+}
+
+.oxyai-chat-message.is-user {
+  justify-self: end;
+  background: #111827;
+  color: #fff;
+}
+
+.oxyai-chat-message.is-assistant {
+  justify-self: start;
+  background: #eef4ff;
+}
+
+.oxyai-chat-message.is-system {
+  max-width: 100%;
+  justify-self: center;
+  background: #f3f4f6;
+  color: #5b6678;
+}
+
+.oxyai-builder-chat-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.oxyai-builder-chat-input textarea {
+  min-height: 82px;
+}
+
+.oxyai-builder-chat-input div {
+  display: grid;
+  gap: 8px;
+}
+
+.oxyai-builder-chat-input button[data-oxyai-chat-apply] {
+  border-color: #155eef;
+  background: #155eef;
+  color: #fff;
+}
+
+.oxyai-builder-dialog label {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+  font-weight: 700;
+  color: #111827 !important;
+}
+
+.oxyai-builder-dialog textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 12px 14px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #fff !important;
+  box-sizing: border-box;
+  color: #111827 !important;
+  caret-color: #111827;
+  -webkit-text-fill-color: #111827;
+  font-family: Consolas, "SFMono-Regular", Menlo, monospace;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.oxyai-builder-dialog input,
+.oxyai-builder-dialog select,
+.oxyai-builder-dialog button {
+  color: #111827;
+}
+
+.oxyai-builder-dialog textarea::placeholder {
+  color: #7b8493;
+  -webkit-text-fill-color: #7b8493;
+}
+
+.oxyai-builder-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.oxyai-builder-grid .is-html {
+  grid-row: auto;
+}
+
+.oxyai-builder-grid .is-html textarea {
+  min-height: 230px;
+}
+
+.oxyai-builder-grid textarea {
+  min-height: 120px;
+}
+
+.oxyai-builder-options {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.oxyai-builder-savebar {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.oxyai-builder-savebar label {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.oxyai-builder-savebar select {
+  width: 100%;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.oxyai-builder-savebar p {
+  margin: 0;
+  color: #5b6678;
+  font-size: 12px;
+}
+
+.oxyai-builder-option-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.oxyai-builder-option-notes span {
+  padding: 9px 10px;
+  border: 1px dashed #d8dee8;
+  border-radius: 8px;
+  color: #5b6678;
+  font-size: 12px;
+}
+
+.oxyai-builder-options label {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f6f8fb;
+  font-weight: 500;
+}
+
+.oxyai-builder-status {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f6f8fb;
+}
+
+.oxyai-codex-handoff {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(21, 94, 239, 0.24);
+  border-radius: 8px;
+  background: #eef4ff;
+}
+
+.oxyai-codex-handoff[hidden] {
+  display: none;
+}
+
+.oxyai-codex-handoff p {
+  margin: 4px 0 0;
+  color: #5b6678;
+}
+
+.oxyai-codex-handoff > div:last-child {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.oxyai-codex-handoff button {
+  border: 1px solid #155eef;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #155eef;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.oxyai-codex-handoff button[data-oxyai-handoff-apply] {
+  background: #155eef;
+  color: #fff;
+}
+
+.oxyai-builder-status.is-error {
+  color: #b91c1c;
+  background: #fff1f1;
+  border-color: #fecaca;
+}
+
+.oxyai-builder-actions {
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.oxyai-builder-actions button {
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  padding: 9px 14px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.oxyai-builder-actions button[data-oxyai-convert] {
+  border-color: #155eef;
+  background: #155eef;
+  color: #fff;
+}
+
+.oxyai-builder-actions button[data-oxyai-edit] {
+  border-color: #111827;
+  background: #111827;
+  color: #fff;
+}
+
+.oxyai-builder-actions button[data-oxyai-direct-apply],
+.oxyai-codex-handoff button[data-oxyai-handoff-save] {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: #fff;
+}
+
+@media (max-width: 760px) {
+  .oxyai-builder-grid,
+  .oxyai-builder-option-notes,
+  .oxyai-builder-chat-input {
+    grid-template-columns: 1fr;
+  }
+
+  .oxyai-builder-target {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .oxyai-codex-handoff {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .oxyai-builder-grid .is-html {
+    grid-row: auto;
+  }
+}

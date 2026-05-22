@@ -1,0 +1,377 @@
+.oxyai-wrap {
+  --oxyai-text: #172033;
+  --oxyai-muted: #607086;
+  --oxyai-border: #d8dee8;
+  --oxyai-surface: #fff;
+  --oxyai-soft: #f6f8fb;
+  --oxyai-accent: #155eef;
+  --oxyai-dark: #101828;
+  max-width: 1360px;
+  color: var(--oxyai-text);
+}
+
+.oxyai-hero,
+.oxyai-card,
+.oxyai-start article {
+  background: var(--oxyai-surface);
+  border: 1px solid var(--oxyai-border);
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(16, 24, 40, 0.06);
+}
+
+.oxyai-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  margin: 24px 0 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, #fff 0%, #f7faff 100%);
+}
+
+.oxyai-eyebrow,
+.oxyai-card-kicker {
+  margin: 0 0 6px;
+  color: var(--oxyai-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.oxyai-hero h1,
+.oxyai-card h2 {
+  margin: 0 0 8px;
+  color: var(--oxyai-text);
+}
+
+.oxyai-hero p,
+.oxyai-start p,
+.oxyai-composer-help p,
+.oxyai-card .description {
+  color: var(--oxyai-muted);
+}
+
+.oxyai-hero-actions,
+.oxyai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oxyai-start {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.oxyai-start article {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.oxyai-start strong {
+  font-size: 15px;
+}
+
+.oxyai-start p {
+  margin: 0;
+}
+
+.oxyai-start span {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: var(--oxyai-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.oxyai-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 16px;
+  align-items: start;
+}
+
+.oxyai-main,
+.oxyai-sidebar {
+  display: grid;
+  gap: 16px;
+}
+
+.oxyai-sidebar {
+  position: sticky;
+  top: 42px;
+}
+
+.oxyai-card {
+  padding: 18px;
+}
+
+.oxyai-section-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.oxyai-card label {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0;
+  font-weight: 650;
+}
+
+.oxyai-card input[type="text"],
+.oxyai-card input[type="url"],
+.oxyai-card input[type="password"],
+.oxyai-card select,
+.oxyai-textarea {
+  width: 100%;
+  border: 1px solid var(--oxyai-border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: #fff;
+  color: var(--oxyai-text);
+}
+
+.oxyai-card input[type="text"],
+.oxyai-card input[type="url"],
+.oxyai-card input[type="password"],
+.oxyai-card select {
+  min-height: 38px;
+}
+
+.oxyai-textarea {
+  min-height: 330px;
+  padding: 12px 14px;
+  resize: vertical;
+  font-family: Consolas, "SFMono-Regular", Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.oxyai-textarea-small {
+  min-height: 90px;
+  font-family: inherit;
+}
+
+.oxyai-output {
+  min-height: 220px;
+  background: var(--oxyai-dark);
+  color: #eef2ff;
+}
+
+.oxyai-composer-help {
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+}
+
+.oxyai-composer-help p {
+  margin: 0;
+}
+
+.oxyai-source-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 5px;
+  border: 1px solid var(--oxyai-border);
+  border-radius: 8px;
+  background: var(--oxyai-soft);
+}
+
+.oxyai-source-tabs button {
+  border: 0;
+  border-radius: 7px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--oxyai-muted);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.oxyai-source-tabs button.is-active {
+  background: var(--oxyai-accent);
+  color: #fff;
+}
+
+.oxyai-source-panels label[hidden],
+[data-oxyai-provider-fields][hidden] {
+  display: none;
+}
+
+.oxyai-details {
+  margin-top: 14px;
+  border: 1px solid var(--oxyai-border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.oxyai-details summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.oxyai-details > :not(summary) {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+.oxyai-options {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 14px;
+}
+
+.oxyai-options label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  font-weight: 500;
+}
+
+.oxyai-status {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid var(--oxyai-border);
+  border-radius: 8px;
+  background: var(--oxyai-soft);
+}
+
+.oxyai-status.is-error {
+  background: #fff1f1;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.oxyai-page-apply {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 180px auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+}
+
+.oxyai-page-apply label {
+  margin: 0;
+}
+
+.oxyai-page-apply p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--oxyai-muted);
+}
+
+.oxyai-page-apply-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.oxyai-audit {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.oxyai-audit section {
+  padding: 10px;
+  border: 1px solid var(--oxyai-border);
+  border-radius: 8px;
+  background: var(--oxyai-soft);
+}
+
+.oxyai-audit ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.oxyai-guide-card {
+  background: linear-gradient(145deg, #101828, #155eef);
+  color: #fff;
+}
+
+.oxyai-guide-card h2 {
+  color: #fff;
+}
+
+.oxyai-steps {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oxyai-steps li {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.oxyai-steps li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.oxyai-steps span {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.oxyai-token-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.oxyai-endpoint {
+  display: block;
+  overflow-wrap: anywhere;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--oxyai-dark);
+  color: #eef2ff;
+  font-size: 12px;
+}
+
+@media (max-width: 1180px) {
+  .oxyai-layout,
+  .oxyai-start,
+  .oxyai-audit,
+  .oxyai-page-apply {
+    grid-template-columns: 1fr;
+  }
+
+  .oxyai-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 782px) {
+  .oxyai-hero,
+  .oxyai-section-title {
+    flex-direction: column;
+  }
+
+  .oxyai-token-row {
+    grid-template-columns: 1fr;
+  }
+}

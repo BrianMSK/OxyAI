@@ -1,0 +1,16 @@
+# Planning / research docs (not part of the published plugin)
+IMPLEMENTATION_PLAN.md
+deep-research-report.md
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log

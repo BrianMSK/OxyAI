@@ -1,0 +1,15 @@
+{
+  "name": "oxyai/oxyai-oxygen",
+  "description": "AI-assisted HTML/CSS/JS converter for native Oxygen 6 builder elements.",
+  "type": "wordpress-plugin",
+  "license": "GPL-3.0-or-later",
+  "require": {
+    "php": ">=8.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "OxyAI\\Oxygen\\": "src/",
+      "OxyHtmlConverter\\": "vendor/oxygen-html-converter/src/"
+    }
+  }
+}
