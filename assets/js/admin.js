@@ -147,21 +147,29 @@
     });
   }
 
-  function renderPlanQuestion(question) {
-    const id = escapeAttr(question.id || question.label || "question");
+  function planQuestionId(question, index) {
+    const source = String(question.id || question.label || "question");
+    let hash = 0;
+    for (let i = 0; i < source.length; i++) {
+      hash = ((hash << 5) - hash + source.charCodeAt(i)) | 0;
+    }
+    return `q-${index}-${Math.abs(hash).toString(36)}`;
+  }
+
+  function renderPlanQuestion(question, index) {
+    const id = planQuestionId(question, index);
+    const originalId = question.id || question.label || "question";
     const type = question.type || "single_choice";
     const options = Array.isArray(question.options) ? question.options : [];
     const inputs = options.length
       ? options.map((option, index) => {
           const inputType = type === "multi_choice" ? "checkbox" : "radio";
-          return `<label><input type="${inputType}" name="oxyai-plan-${id}" value="${escapeAttribute(option)}"${
-            index === 0 && inputType === "radio" ? " checked" : ""
-          }> ${escapeHtml(option)}</label>`;
+          return `<label><input type="${inputType}" name="oxyai-plan-${id}" value="${escapeAttribute(option)}"> ${escapeHtml(option)}</label>`;
         }).join("")
       : `<input type="${type === "color" ? "text" : "text"}" data-oxyai-plan-text="${id}" placeholder="Type an answer...">`;
 
     return `
-      <section data-oxyai-question="${id}" data-oxyai-question-label="${escapeAttr(question.label || "")}">
+      <section data-oxyai-question="${id}" data-oxyai-question-id="${escapeAttribute(originalId)}" data-oxyai-question-label="${escapeAttribute(question.label || "")}">
         <strong>${escapeHtml(question.label || "Question")}</strong>
         ${question.why ? `<p>${escapeHtml(question.why)}</p>` : ""}
         <div>${inputs}</div>
@@ -171,8 +179,8 @@
   }
 
   function collectPlanAnswers(container, questions) {
-    return questions.map((question) => {
-      const id = escapeAttr(question.id || question.label || "question");
+    return questions.map((question, index) => {
+      const id = planQuestionId(question, index);
       const section = container.querySelector(`[data-oxyai-question="${id}"]`);
       if (!section) return "";
       const checked = Array.from(section.querySelectorAll("input[type='radio']:checked, input[type='checkbox']:checked"))

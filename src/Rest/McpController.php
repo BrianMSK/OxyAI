@@ -271,7 +271,7 @@ final class McpController
      */
     private function toolDefinitions(): array
     {
-        return [
+        $tools = [
             $this->tool('get_prompt_instructions', 'Use this first. Fetch OxyAI prompt rules, output schema, and design presets for generating Oxygen-compatible HTML/CSS/JS.', []),
             $this->tool('list_oxygen_pages', 'Find WordPress pages/templates that can receive generated OxyAI payloads.', [
                 'search' => ['type' => 'string', 'description' => 'Optional page title search.'],
@@ -343,18 +343,6 @@ final class McpController
                 'siteInspiration' => ['type' => 'string'],
                 'context' => ['type' => 'object'],
             ], ['prompt']),
-            $this->tool('plan_generation', 'Ask 1-4 clarifying design questions or return a ready prompt before generating HTML/CSS/JS.', [
-                'prompt' => ['type' => 'string'],
-                'preset' => ['type' => 'string'],
-                'siteInspiration' => ['type' => 'string'],
-                'context' => ['type' => 'object'],
-            ], ['prompt']),
-            $this->tool('triple_shot_generation', 'Generate three source-bundle variants with conversion, editorial, and product-clarity directions.', [
-                'prompt' => ['type' => 'string'],
-                'preset' => ['type' => 'string'],
-                'siteInspiration' => ['type' => 'string'],
-                'context' => ['type' => 'object'],
-            ], ['prompt']),
             $this->tool('replace_selected_subtree', 'Generate and convert a replacement payload for a captured builder subtree. Use from an active builder context or with captured context.', [
                 'prompt' => ['type' => 'string'],
                 'context' => ['type' => 'object'],
@@ -367,6 +355,26 @@ final class McpController
             $this->tool('list_design_presets', 'List design presets available to OxyAI.', []),
             $this->tool('list_site_inspirations', 'List first-party OxyAI site inspiration directions for generation prompts.', []),
         ];
+
+        if ($this->planMode !== null) {
+            $tools[] = $this->tool('plan_generation', 'Ask 1-4 clarifying design questions or return a ready prompt before generating HTML/CSS/JS.', [
+                'prompt' => ['type' => 'string'],
+                'preset' => ['type' => 'string'],
+                'siteInspiration' => ['type' => 'string'],
+                'context' => ['type' => 'object'],
+            ], ['prompt']);
+        }
+
+        if ($this->tripleShot !== null) {
+            $tools[] = $this->tool('triple_shot_generation', 'Generate three source-bundle variants with conversion, editorial, and product-clarity directions.', [
+                'prompt' => ['type' => 'string'],
+                'preset' => ['type' => 'string'],
+                'siteInspiration' => ['type' => 'string'],
+                'context' => ['type' => 'object'],
+            ], ['prompt']);
+        }
+
+        return $tools;
     }
 
     /**

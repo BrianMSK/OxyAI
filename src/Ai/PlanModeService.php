@@ -131,8 +131,14 @@ final class PlanModeService
                 continue;
             }
 
+            $fallbackId = 'q_' . (count($questions) + 1);
+            $questionId = sanitize_key((string) ($question['id'] ?? $fallbackId));
+            if ($questionId === '') {
+                $questionId = $fallbackId;
+            }
+
             $questions[] = [
-                'id' => sanitize_key((string) ($question['id'] ?? 'q_' . (count($questions) + 1))),
+                'id' => $questionId,
                 'label' => $label,
                 'why' => trim((string) ($question['why'] ?? '')),
                 'type' => $type,
@@ -145,11 +151,16 @@ final class PlanModeService
             $questions = $this->fallbackPlan($prompt, [])['questions'];
         }
 
+        $readyPrompt = trim((string) ($plan['readyPrompt'] ?? ''));
+        if ($readyPrompt === '') {
+            $readyPrompt = $prompt;
+        }
+
         return [
             'status' => $status,
             'summary' => trim((string) ($plan['summary'] ?? 'Clarify the design direction before generating.')),
             'questions' => $status === 'ready' ? [] : array_slice($questions, 0, 4),
-            'readyPrompt' => trim((string) ($plan['readyPrompt'] ?? $prompt)),
+            'readyPrompt' => $readyPrompt,
         ];
     }
 

@@ -121,7 +121,11 @@ final class AiController
     public function plan(WP_REST_Request $request)
     {
         $result = $this->planMode->plan($this->input($request));
-        return is_wp_error($result) ? $this->error($result) : $this->ok($result);
+        if (is_wp_error($result)) {
+            return $this->error($result);
+        }
+
+        return $this->ok($result);
     }
 
     public function tripleShot(WP_REST_Request $request)
@@ -137,7 +141,11 @@ final class AiController
             ]);
         }
 
-        return is_wp_error($result) ? $this->error($result) : $this->ok($result);
+        if (is_wp_error($result)) {
+            return $this->error($result);
+        }
+
+        return $this->ok($result);
     }
 
     /**

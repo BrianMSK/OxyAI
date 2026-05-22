@@ -31,6 +31,19 @@
     });
   }
 
+  function requestGet(path) {
+    return fetch(config.restUrl + path, {
+      credentials: "same-origin",
+      headers: { "x-wp-nonce": config.nonce },
+    }).then(async function (response) {
+      const data = await response.json();
+      if (!response.ok || data.success === false) {
+        throw new Error(data.message || strings.failed || "Request failed.");
+      }
+      return data;
+    });
+  }
+
   function buildModal() {
     ensureParentStyles();
 
@@ -62,11 +75,6 @@
             <label>Site inspiration
               <select data-oxyai-site-inspiration>
                 <option value="">No inspiration</option>
-                <option value="editorial-luxury">Editorial Luxury</option>
-                <option value="technical-saas">Technical SaaS</option>
-                <option value="warm-marketplace">Warm Marketplace</option>
-                <option value="bold-launch">Bold Launch</option>
-                <option value="minimal-product">Minimal Product</option>
               </select>
             </label>
             <div>
@@ -239,6 +247,27 @@
     }
   }
 
+  async function refreshSiteInspirations() {
+    const select = field("[data-oxyai-site-inspiration]");
+    if (!select) return;
+
+    try {
+      const data = await requestGet("/site-inspirations");
+      const inspirations = Array.isArray(data.siteInspirations) ? data.siteInspirations : [];
+      if (!inspirations.length) return;
+
+      const current = select.value;
+      select.innerHTML = `<option value="">No inspiration</option>` + inspirations.map((item) => {
+        const slug = item.slug || item.id || "";
+        const label = item.name || item.title || slug;
+        return `<option value="${escapeAttribute(slug)}">${escapeHtml(label)}</option>`;
+      }).join("");
+      select.value = inspirations.some((item) => (item.slug || item.id || "") === current) ? current : "";
+    } catch (error) {
+      // Keep the existing fallback options usable if the endpoint is unavailable.
+    }
+  }
+
   function loadHandoff() {
     const handoff = field("[data-oxyai-handoff]")?.__oxyaiHandoff;
     if (!handoff || !handoff.source) return;
@@ -387,15 +416,25 @@
     });
   }
 
-  function renderPlanQuestion(question) {
-    const id = escapeAttr(question.id || question.label || "question");
+  function planQuestionId(question, index) {
+    const source = String(question.id || question.label || "question");
+    let hash = 0;
+    for (let i = 0; i < source.length; i++) {
+      hash = ((hash << 5) - hash + source.charCodeAt(i)) | 0;
+    }
+    return `q-${index}-${Math.abs(hash).toString(36)}`;
+  }
+
+  function renderPlanQuestion(question, index) {
+    const id = planQuestionId(question, index);
+    const originalId = question.id || question.label || "question";
     const type = question.type === "multi_choice" ? "checkbox" : "radio";
     const options = Array.isArray(question.options) ? question.options : [];
     const controls = options.length
-      ? options.map((option, index) => `<label><input type="${type}" name="oxyai-builder-plan-${id}" value="${escapeHtml(option)}"${index === 0 && type === "radio" ? " checked" : ""}> ${escapeHtml(option)}</label>`).join("")
+      ? options.map((option) => `<label><input type="${type}" name="oxyai-builder-plan-${id}" value="${escapeHtml(option)}"> ${escapeHtml(option)}</label>`).join("")
       : `<input type="text" data-oxyai-plan-text="${id}" placeholder="Type an answer...">`;
     return `
-      <section data-oxyai-question="${id}">
+      <section data-oxyai-question="${id}" data-oxyai-question-id="${escapeAttribute(originalId)}">
         <span>${escapeHtml(question.label || "Question")}</span>
         ${question.why ? `<p>${escapeHtml(question.why)}</p>` : ""}
         <div>${controls}</div>
@@ -405,8 +444,8 @@
   }
 
   function collectPlanAnswers(container, questions) {
-    return questions.map((question) => {
-      const id = escapeAttr(question.id || question.label || "question");
+    return questions.map((question, index) => {
+      const id = planQuestionId(question, index);
       const section = container.querySelector(`[data-oxyai-question="${id}"]`);
       if (!section) return "";
       const checked = Array.from(section.querySelectorAll("input[type='radio']:checked, input[type='checkbox']:checked"))
@@ -631,6 +670,7 @@
     buildModal();
     field(".oxyai-builder-overlay").hidden = false;
     setMode("paste");
+    refreshSiteInspirations();
     refreshHandoff();
     field("[data-oxyai-html]").focus();
   }
@@ -788,6 +828,10 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttribute(value) {
+    return escapeHtml(value).replace(/'/g, "&#039;");
   }
 
   function escapeAttr(value) {
