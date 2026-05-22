@@ -9,6 +9,9 @@ use OxyAI\Oxygen\Builder\BuilderInsertionService;
 use OxyAI\Oxygen\Codex\PageContextService;
 use OxyAI\Oxygen\Codex\PromptInstructionService;
 use OxyAI\Oxygen\Conversion\ConverterKernelAdapter;
+use OxyAI\Oxygen\Ai\PlanModeService;
+use OxyAI\Oxygen\Ai\TripleShotService;
+use OxyAI\Oxygen\Inspirations\SiteInspirationStore;
 use OxyAI\Oxygen\Oxygen\OxygenPageMutationService;
 use OxyAI\Oxygen\Presets\PresetStore;
 use OxyAI\Oxygen\Security\CapabilityService;
@@ -26,11 +29,14 @@ final class McpController
         private readonly AiGateway $aiGateway,
         private readonly PresetStore $presets,
         private readonly OxygenPageMutationService $pageMutations = new OxygenPageMutationService(),
+        private readonly ?PlanModeService $planMode = null,
+        private readonly ?TripleShotService $tripleShot = null,
+        private readonly SiteInspirationStore $inspirations = new SiteInspirationStore(),
         private readonly BuilderInsertionService $insertionService = new BuilderInsertionService(),
         private ?PromptInstructionService $instructions = null,
         private ?PageContextService $pages = null
     ) {
-        $this->instructions = $this->instructions ?: new PromptInstructionService($this->presets);
+        $this->instructions = $this->instructions ?: new PromptInstructionService($this->presets, $this->inspirations);
         $this->pages = $this->pages ?: new PageContextService();
     }
 
@@ -248,6 +254,9 @@ final class McpController
                 (int) ($input['postId'] ?? $input['id'] ?? 0)
             ),
             'list_design_presets' => ['success' => true, 'presets' => $this->presets->all()],
+            'list_site_inspirations' => ['success' => true, 'siteInspirations' => $this->inspirations->all()],
+            'plan_generation' => $this->planGeneration($input),
+            'triple_shot_generation' => $this->tripleShotGeneration($input),
             'generate_html_css_js' => $this->aiGateway->generate($input),
             'preview_conversion' => $this->converter->preview(SourceBundle::fromArray($input), is_array($input['options'] ?? null) ? $input['options'] : []),
             'convert_html_to_oxygen' => $this->converter->convert(SourceBundle::fromArray($input), is_array($input['options'] ?? null) ? $input['options'] : []),
@@ -262,7 +271,7 @@ final class McpController
      */
     private function toolDefinitions(): array
     {
-        return [
+        $tools = [
             $this->tool('get_prompt_instructions', 'Use this first. Fetch OxyAI prompt rules, output schema, and design presets for generating Oxygen-compatible HTML/CSS/JS.', []),
             $this->tool('list_oxygen_pages', 'Find WordPress pages/templates that can receive generated OxyAI payloads.', [
                 'search' => ['type' => 'string', 'description' => 'Optional page title search.'],
@@ -331,6 +340,7 @@ final class McpController
             $this->tool('generate_html_css_js', 'Generate a strict HTML/CSS/JS source bundle from a prompt using the configured provider.', [
                 'prompt' => ['type' => 'string'],
                 'preset' => ['type' => 'string'],
+                'siteInspiration' => ['type' => 'string'],
                 'context' => ['type' => 'object'],
             ], ['prompt']),
             $this->tool('replace_selected_subtree', 'Generate and convert a replacement payload for a captured builder subtree. Use from an active builder context or with captured context.', [
@@ -343,7 +353,28 @@ final class McpController
                 'oxygen' => ['type' => 'object'],
             ]),
             $this->tool('list_design_presets', 'List design presets available to OxyAI.', []),
+            $this->tool('list_site_inspirations', 'List first-party OxyAI site inspiration directions for generation prompts.', []),
         ];
+
+        if ($this->planMode !== null) {
+            $tools[] = $this->tool('plan_generation', 'Ask 1-4 clarifying design questions or return a ready prompt before generating HTML/CSS/JS.', [
+                'prompt' => ['type' => 'string'],
+                'preset' => ['type' => 'string'],
+                'siteInspiration' => ['type' => 'string'],
+                'context' => ['type' => 'object'],
+            ], ['prompt']);
+        }
+
+        if ($this->tripleShot !== null) {
+            $tools[] = $this->tool('triple_shot_generation', 'Generate three source-bundle variants with conversion, editorial, and product-clarity directions.', [
+                'prompt' => ['type' => 'string'],
+                'preset' => ['type' => 'string'],
+                'siteInspiration' => ['type' => 'string'],
+                'context' => ['type' => 'object'],
+            ], ['prompt']);
+        }
+
+        return $tools;
     }
 
     /**
@@ -506,5 +537,29 @@ final class McpController
         $oxygen = is_array($input['oxygen'] ?? null) ? $input['oxygen'] : $input;
 
         return $this->pageMutations->applyOxygen($postId, $oxygen, $input);
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function planGeneration(array $input)
+    {
+        if ($this->planMode === null) {
+            return new WP_Error('oxyai_plan_unavailable', __('Plan Mode is not available.', 'oxyai-oxygen'), ['status' => 500]);
+        }
+
+        return $this->planMode->plan($input);
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function tripleShotGeneration(array $input)
+    {
+        if ($this->tripleShot === null) {
+            return new WP_Error('oxyai_triple_shot_unavailable', __('Triple Shot is not available.', 'oxyai-oxygen'), ['status' => 500]);
+        }
+
+        return $this->tripleShot->generate($input);
     }
 }
