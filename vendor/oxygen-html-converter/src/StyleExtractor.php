@@ -48,6 +48,43 @@ class StyleExtractor
         'border-top-right-radius' => true,
         'border-bottom-left-radius' => true,
         'border-bottom-right-radius' => true,
+        'display' => true,
+        'flex-direction' => true,
+        'flex-wrap' => true,
+        'justify-content' => true,
+        'align-items' => true,
+        'align-content' => true,
+        'gap' => true,
+        'row-gap' => true,
+        'column-gap' => true,
+        'flex-grow' => true,
+        'flex-shrink' => true,
+        'flex-basis' => true,
+        'order' => true,
+        'grid-template-columns' => true,
+        'grid-template-rows' => true,
+        'grid-auto-flow' => true,
+        'grid-auto-columns' => true,
+        'grid-auto-rows' => true,
+        'position' => true,
+        'top' => true,
+        'right' => true,
+        'bottom' => true,
+        'left' => true,
+        'z-index' => true,
+        'overflow' => true,
+        'overflow-x' => true,
+        'overflow-y' => true,
+        'opacity' => true,
+        'box-shadow' => true,
+        'transform' => true,
+        'transition' => true,
+        'filter' => true,
+        'backdrop-filter' => true,
+        'mix-blend-mode' => true,
+        'object-fit' => true,
+        'object-position' => true,
+        'aspect-ratio' => true,
     ];
 
     /**
@@ -214,6 +251,56 @@ class StyleExtractor
 
         if (isset($cornerMap[$cssProp])) {
             $this->setBorderRadius($properties, $boxCategory, [$cornerMap[$cssProp] => $value]);
+            return;
+        }
+
+        if (in_array($cssProp, ['display', 'flex-direction', 'flex-wrap', 'justify-content', 'align-items', 'align-content', 'grid-template-columns', 'grid-template-rows', 'grid-auto-flow', 'grid-auto-columns', 'grid-auto-rows'], true)) {
+            $this->setBreakpointValue($properties, ['layout', $this->oxygenKey($cssProp)], $value);
+            return;
+        }
+
+        if (in_array($cssProp, ['gap', 'row-gap', 'column-gap', 'flex-basis'], true)) {
+            $this->setBreakpointValue($properties, ['layout', $this->oxygenKey($cssProp)], $this->normalizeLength($value));
+            return;
+        }
+
+        if (in_array($cssProp, ['flex-grow', 'flex-shrink', 'order'], true)) {
+            $this->setBreakpointValue($properties, ['layout', $this->oxygenKey($cssProp)], $this->normalizeNumber($value));
+            return;
+        }
+
+        if ($cssProp === 'position') {
+            $this->setBreakpointValue($properties, ['position', 'position'], $value);
+            return;
+        }
+
+        if (in_array($cssProp, ['top', 'right', 'bottom', 'left'], true)) {
+            $this->setBreakpointValue($properties, ['position', $cssProp], $this->normalizeLength($value));
+            return;
+        }
+
+        if ($cssProp === 'z-index') {
+            $this->setBreakpointValue($properties, ['position', 'z_index'], $this->normalizeNumber($value));
+            return;
+        }
+
+        if (in_array($cssProp, ['overflow', 'overflow-x', 'overflow-y'], true)) {
+            $this->setBreakpointValue($properties, ['overflow', $this->oxygenKey($cssProp)], $value);
+            return;
+        }
+
+        if ($cssProp === 'opacity') {
+            $this->setBreakpointValue($properties, ['effects', 'opacity'], $this->normalizeNumber($value));
+            return;
+        }
+
+        if (in_array($cssProp, ['box-shadow', 'transform', 'transition', 'filter', 'backdrop-filter', 'mix-blend-mode'], true)) {
+            $this->setBreakpointValue($properties, ['effects', $this->oxygenKey($cssProp)], $value);
+            return;
+        }
+
+        if (in_array($cssProp, ['object-fit', 'object-position', 'aspect-ratio'], true)) {
+            $this->setBreakpointValue($properties, ['size', $this->oxygenKey($cssProp)], $value);
         }
     }
 
@@ -396,6 +483,20 @@ class StyleExtractor
                 'unit' => strtolower($matches[2]),
                 'style' => $matches[1] . strtolower($matches[2]),
             ];
+        }
+
+        return $value;
+    }
+
+    /**
+     * @return int|float|string
+     */
+    private function normalizeNumber(string $value)
+    {
+        $value = trim($value);
+        if (is_numeric($value)) {
+            $number = (float) $value;
+            return floor($number) === $number ? (int) $number : $number;
         }
 
         return $value;

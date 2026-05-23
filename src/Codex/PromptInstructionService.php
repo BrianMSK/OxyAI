@@ -39,7 +39,7 @@ final class PromptInstructionService
                 'Use dryRun=true before direct page writes when the user has not explicitly approved applying content.',
                 'Prefer append for new sections, replace_node for selected static elements, and replace only when the user explicitly wants to overwrite the page tree.',
                 'Always send non-ASCII characters as JSON unicode escapes (for example, \\u00E4; use surrogate pairs for non-BMP characters). Do not send raw UTF-8 bytes in html, css, js, or oxygen fields - downstream storage can double-encode them and corrupt diacritics.',
-                'Use the css field as the authoritative fallback for component CSS. Native Oxygen design properties improve editability only for supported properties. Keep CSS Code for media queries, pseudo selectors, layout, transforms, filters, shadows, and any unverified schema path.',
+                'Use the css field as the authoritative fallback for component CSS. Native Oxygen design properties improve editability only for supported properties. Keep CSS Code for media queries, pseudo selectors, keyframes, complex selectors, responsive variants, and any unverified schema path.',
                 'When Breakdance Elements for Oxygen is available, button-like elements may map to EssentialElements\\Button. Check list_oxygen_element_capabilities for current availability and supported styling buckets.',
                 'After any apply_html_to_oxygen_page or apply_oxygen_json_to_page call, re-fetch get_oxygen_tree and, when possible, verify the page renders before reporting success. Direct writes create a restore backup unless dryRun is true; after applying, verify the new backup appears in list_oxygen_page_backups and capture its id.',
             ],

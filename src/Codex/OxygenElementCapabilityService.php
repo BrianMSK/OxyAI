@@ -39,7 +39,7 @@ final class OxygenElementCapabilityService
                 'Use native design properties only for supported element/property pairs listed here.',
                 'Every native style value must be written under breakpoint_base unless a real responsive mapping is implemented.',
                 'Length values must use Oxygen structured values: {number, unit, style}.',
-                'Keep class CSS in CssCode for pseudo selectors, media queries, keyframes, transforms, filters, shadows, grid/flex layout, complex selectors, and any unverified property.',
+                'Keep class CSS in CssCode for pseudo selectors, media queries, keyframes, complex selectors, responsive variants, and any unverified property.',
                 'Do not strip CssCode fallback unless conversion audit proves every declaration in the selector was consumed natively.',
             ],
             'classStylingPolicy' => [
@@ -97,56 +97,105 @@ final class OxygenElementCapabilityService
             'height',
             'min-height',
             'max-height',
+            'object-fit',
+            'object-position',
+            'aspect-ratio',
+        ];
+
+        $layoutStyles = [
+            'display',
+            'flex-direction',
+            'flex-wrap',
+            'justify-content',
+            'align-items',
+            'align-content',
+            'gap',
+            'row-gap',
+            'column-gap',
+            'flex-grow',
+            'flex-shrink',
+            'flex-basis',
+            'order',
+            'grid-template-columns',
+            'grid-template-rows',
+            'grid-auto-flow',
+            'grid-auto-columns',
+            'grid-auto-rows',
+        ];
+
+        $positionStyles = [
+            'position',
+            'top',
+            'right',
+            'bottom',
+            'left',
+            'z-index',
+        ];
+
+        $effectStyles = [
+            'opacity',
+            'box-shadow',
+            'transform',
+            'transition',
+            'filter',
+            'backdrop-filter',
+            'mix-blend-mode',
+        ];
+
+        $overflowStyles = [
+            'overflow',
+            'overflow-x',
+            'overflow-y',
         ];
 
         return [
             ElementTypes::CONTAINER => $this->element(
                 ElementTypes::CONTAINER,
                 'General layout wrapper for div, section, article, nav, lists, and similar block HTML.',
-                ['container', 'size', 'typography'],
-                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles)
+                ['container', 'size', 'typography', 'layout', 'position', 'effects', 'overflow'],
+                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles, $layoutStyles, $positionStyles, $effectStyles, $overflowStyles)
             ),
             ElementTypes::CONTAINER_LINK => $this->element(
                 ElementTypes::CONTAINER_LINK,
                 'Clickable wrapper for button-like links or links with child elements.',
-                ['container', 'size', 'typography'],
-                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles)
+                ['container', 'size', 'typography', 'layout', 'position', 'effects', 'overflow'],
+                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles, $layoutStyles, $positionStyles, $effectStyles, $overflowStyles)
             ),
             ElementTypes::TEXT => $this->element(
                 ElementTypes::TEXT,
                 'Plain text, headings, spans, labels, and simple paragraphs.',
-                ['container', 'size', 'typography'],
-                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles)
+                ['container', 'size', 'typography', 'layout', 'position', 'effects', 'overflow'],
+                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles, $layoutStyles, $positionStyles, $effectStyles, $overflowStyles)
             ),
             ElementTypes::TEXT_LINK => $this->element(
                 ElementTypes::TEXT_LINK,
                 'Inline text link.',
-                ['container', 'size', 'typography'],
-                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles)
+                ['container', 'size', 'typography', 'layout', 'position', 'effects', 'overflow'],
+                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles, $layoutStyles, $positionStyles, $effectStyles, $overflowStyles)
             ),
             ElementTypes::RICH_TEXT => $this->element(
                 ElementTypes::RICH_TEXT,
                 'Rich text wrapper for preserved table or rich HTML content.',
-                ['container', 'size', 'typography'],
-                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles)
+                ['container', 'size', 'typography', 'layout', 'position', 'effects', 'overflow'],
+                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles, $layoutStyles, $positionStyles, $effectStyles, $overflowStyles)
             ),
             ElementTypes::IMAGE => $this->element(
                 ElementTypes::IMAGE,
-                'Image element. Native support is currently limited to wrapper/size/radius properties; object-fit and filters stay in CSS.',
-                ['container', 'size'],
-                array_merge($sharedBoxStyles, $sizeStyles)
+                'Image element. Native support covers wrapper, size, object fit/position, effects, overflow, and positioning.',
+                ['container', 'size', 'position', 'effects', 'overflow'],
+                array_merge($sharedBoxStyles, $sizeStyles, $positionStyles, $effectStyles, $overflowStyles)
             ),
             ElementTypes::HTML5_VIDEO => $this->element(
                 ElementTypes::HTML5_VIDEO,
-                'Video element. Native support is currently limited to wrapper/size/radius properties.',
-                ['container', 'size'],
-                array_merge($sharedBoxStyles, $sizeStyles)
+                'Video element. Native support covers wrapper, size, object fit/position, effects, overflow, and positioning.',
+                ['container', 'size', 'position', 'effects', 'overflow'],
+                array_merge($sharedBoxStyles, $sizeStyles, $positionStyles, $effectStyles, $overflowStyles)
             ),
             ElementTypes::ESSENTIAL_BUTTON => $this->element(
                 ElementTypes::ESSENTIAL_BUTTON,
                 'Breakdance Elements for Oxygen button. Use only when the plugin and contract are available.',
-                ['button', 'size', 'typography'],
-                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles),
+                ['button', 'size', 'typography', 'layout', 'position', 'effects', 'overflow'],
+                array_merge($sharedBoxStyles, $typographyStyles, $sizeStyles, $layoutStyles, $positionStyles, $effectStyles, $overflowStyles),
                 ['requiresBreakdanceElementsForOxygen' => true]
             ),
         ];
@@ -176,18 +225,17 @@ final class OxygenElementCapabilityService
                 'color' => 'string',
                 'radius' => 'container.borders.radius.breakpoint_base.{all,topLeft,topRight,bottomLeft,bottomRight,editMode}',
                 'spacing' => 'container.padding|margin.breakpoint_base.{top,right,bottom,left}',
+                'layout' => 'layout.{property}.breakpoint_base',
+                'position' => 'position.{property}.breakpoint_base',
+                'effects' => 'effects.{property}.breakpoint_base',
+                'overflow' => 'overflow.{property}.breakpoint_base',
             ],
             'mustRemainClassCss' => [
                 'media queries',
                 'pseudo selectors',
                 'keyframes and animations',
-                'grid and flex layout',
-                'positioning',
-                'transform',
-                'transition',
-                'filter',
-                'box-shadow',
                 'complex selectors',
+                'responsive variants until media queries map to Oxygen breakpoints',
                 'unknown or unverified Oxygen schema paths',
             ],
         ], $extra);
