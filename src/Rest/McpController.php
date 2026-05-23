@@ -513,7 +513,7 @@ final class McpController
     private function applyHtmlToPage(array $input)
     {
         $postId = (int) ($input['postId'] ?? $input['id'] ?? 0);
-        $input['registerSelectors'] = $input['registerSelectors'] ?? true;
+        $input = $this->withExplicitRegisterSelectorsDefault($input);
         $converted = $this->converter->convert(
             SourceBundle::fromArray($input),
             is_array($input['options'] ?? null) ? $input['options'] : []
@@ -545,10 +545,24 @@ final class McpController
     private function applyOxygenJsonToPage(array $input)
     {
         $postId = (int) ($input['postId'] ?? $input['id'] ?? 0);
-        $input['registerSelectors'] = $input['registerSelectors'] ?? true;
+        $input = $this->withExplicitRegisterSelectorsDefault($input);
         $oxygen = is_array($input['oxygen'] ?? null) ? $input['oxygen'] : $input;
 
         return $this->pageMutations->applyOxygen($postId, $oxygen, $input);
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @return array<string, mixed>
+     */
+    private function withExplicitRegisterSelectorsDefault(array $input): array
+    {
+        $nestedOptions = is_array($input['options'] ?? null) ? $input['options'] : [];
+        if (!array_key_exists('registerSelectors', $input) && !array_key_exists('registerSelectors', $nestedOptions)) {
+            $input['registerSelectors'] = true;
+        }
+
+        return $input;
     }
 
     /**

@@ -906,8 +906,8 @@ class ElementMapper
         }
 
         if ($tag === 'a' && $this->hasOnlyTextContent($node)) {
-            if ($this->isButtonLikeLink($node) && $this->isEssentialCompatible('button')) {
-                return ElementTypes::ESSENTIAL_BUTTON;
+            if ($this->isButtonLikeLink($node)) {
+                return $this->isEssentialCompatible('button') ? ElementTypes::ESSENTIAL_BUTTON : null;
             }
 
             return $this->isEssentialCompatible('textLink') ? ElementTypes::ESSENTIAL_TEXT_LINK : null;
