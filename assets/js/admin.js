@@ -236,6 +236,7 @@
       const active = tab.getAttribute("data-ox-mode") === mode;
       tab.classList.toggle("is-active", active);
       tab.setAttribute("aria-selected", active ? "true" : "false");
+      tab.setAttribute("tabindex", active ? "0" : "-1");
     });
     $$("[data-ox-panel]").forEach((panel) => {
       panel.hidden = panel.getAttribute("data-ox-panel") !== mode;
@@ -250,11 +251,34 @@
 
   function setSourceTab(tab) {
     $$("[data-oxyai-tab]").forEach((button) => {
-      button.classList.toggle("is-active", button.getAttribute("data-oxyai-tab") === tab);
+      const active = button.getAttribute("data-oxyai-tab") === tab;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      button.setAttribute("tabindex", active ? "0" : "-1");
     });
     $$("[data-oxyai-panel]").forEach((panel) => {
       panel.hidden = panel.getAttribute("data-oxyai-panel") !== tab;
     });
+  }
+
+  function handleTablistKeys(event) {
+    const key = event.key;
+    if (key !== "ArrowRight" && key !== "ArrowLeft" && key !== "Home" && key !== "End") {
+      return;
+    }
+    const tablist = event.currentTarget;
+    const tabs = Array.from(tablist.querySelectorAll("[role='tab']"));
+    if (!tabs.length) return;
+    const currentIndex = tabs.indexOf(document.activeElement);
+    if (currentIndex < 0) return;
+    let nextIndex = currentIndex;
+    if (key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+    if (key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (key === "Home") nextIndex = 0;
+    if (key === "End") nextIndex = tabs.length - 1;
+    event.preventDefault();
+    tabs[nextIndex].focus();
+    tabs[nextIndex].click();
   }
 
   function setOperation(operation) {
@@ -499,6 +523,11 @@
       });
     });
 
+    // Arrow-key navigation across role="tablist" groups
+    $$("[role='tablist']").forEach((tablist) => {
+      tablist.addEventListener("keydown", handleTablistKeys);
+    });
+
     // Operation segmented control
     $$("[data-ox-operation]").forEach((button) => {
       button.addEventListener("click", function () {
@@ -518,8 +547,12 @@
     // Builder shortcut button
     $$("[data-ox-shortcut]").forEach((button) => {
       button.addEventListener("click", async function () {
-        await navigator.clipboard.writeText("Ctrl/Cmd + Shift + Y");
-        setStatus("Builder shortcut copied — use it inside Oxygen.", "success");
+        try {
+          await navigator.clipboard.writeText("Ctrl/Cmd + Shift + Y");
+          setStatus("Builder shortcut copied — use it inside Oxygen.", "success");
+        } catch (error) {
+          setStatus(error?.message || "Failed to copy shortcut.", "error");
+        }
       });
     });
 

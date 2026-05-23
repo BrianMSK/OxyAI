@@ -491,6 +491,11 @@
   color: var(--ox-brand-strong);
 }
 
+.ox-chip:focus-within {
+  border-color: var(--ox-brand);
+  box-shadow: 0 0 0 4px var(--ox-brand-ring);
+}
+
 .ox-chip input {
   position: absolute;
   width: 1px;
@@ -498,8 +503,9 @@
   margin: -1px;
   padding: 0;
   border: 0;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   overflow: hidden;
+  white-space: nowrap;
 }
 
 /* ===== SOURCE TABS (HTML/CSS/JS) ===== */
@@ -731,7 +737,7 @@
   min-height: 100px;
   overflow: auto;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .ox-output:empty::before {
@@ -826,12 +832,18 @@
   color: var(--ox-brand-strong);
 }
 
+.ox-plan__choice:focus-within {
+  border-color: var(--ox-brand);
+  box-shadow: 0 0 0 4px var(--ox-brand-ring);
+}
+
 .ox-plan__choice input {
   position: absolute;
   width: 1px;
   height: 1px;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .ox-plan__actions {
@@ -1166,6 +1178,7 @@
   margin: -1px;
   padding: 0;
   border: 0;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   overflow: hidden;
+  white-space: nowrap;
 }

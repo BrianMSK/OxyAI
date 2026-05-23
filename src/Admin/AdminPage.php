@@ -70,21 +70,21 @@ final class AdminPage
             </header>
 
             <nav class="ox-tabs" role="tablist" aria-label="<?php echo esc_attr__('Choose how to start', 'oxyai-oxygen'); ?>">
-                <button type="button" class="ox-tab is-active" role="tab" aria-selected="true" data-ox-mode="generate">
+                <button type="button" class="ox-tab is-active" role="tab" aria-selected="true" tabindex="0" id="oxyai-tab-generate" aria-controls="oxyai-panel-generate" data-ox-mode="generate">
                     <span class="ox-tab__icon" aria-hidden="true">✦</span>
                     <span class="ox-tab__text">
                         <span class="ox-tab__title"><?php echo esc_html__('Generate with AI', 'oxyai-oxygen'); ?></span>
                         <span class="ox-tab__hint"><?php echo esc_html__('Describe what to build', 'oxyai-oxygen'); ?></span>
                     </span>
                 </button>
-                <button type="button" class="ox-tab" role="tab" aria-selected="false" data-ox-mode="paste">
+                <button type="button" class="ox-tab" role="tab" aria-selected="false" tabindex="-1" id="oxyai-tab-paste" aria-controls="oxyai-panel-paste" data-ox-mode="paste">
                     <span class="ox-tab__icon" aria-hidden="true">⌘</span>
                     <span class="ox-tab__text">
                         <span class="ox-tab__title"><?php echo esc_html__('Paste code', 'oxyai-oxygen'); ?></span>
                         <span class="ox-tab__hint"><?php echo esc_html__('Bring HTML, CSS, JS', 'oxyai-oxygen'); ?></span>
                     </span>
                 </button>
-                <button type="button" class="ox-tab" role="tab" aria-selected="false" data-ox-mode="apply">
+                <button type="button" class="ox-tab" role="tab" aria-selected="false" tabindex="-1" id="oxyai-tab-apply" aria-controls="oxyai-panel-apply" data-ox-mode="apply">
                     <span class="ox-tab__icon" aria-hidden="true">↗</span>
                     <span class="ox-tab__text">
                         <span class="ox-tab__title"><?php echo esc_html__('Send to page', 'oxyai-oxygen'); ?></span>
@@ -98,7 +98,7 @@ final class AdminPage
                 <main class="ox-main">
 
                     <!-- GENERATE PANEL -->
-                    <section class="ox-card ox-panel-content" data-ox-panel="generate" aria-label="<?php echo esc_attr__('Generate with AI', 'oxyai-oxygen'); ?>">
+                    <section class="ox-card ox-panel-content" data-ox-panel="generate" id="oxyai-panel-generate" role="tabpanel" aria-labelledby="oxyai-tab-generate" tabindex="0">
                         <div class="ox-card__body">
                             <label class="ox-field">
                                 <span class="ox-field__label"><?php echo esc_html__('What should OxyAI build?', 'oxyai-oxygen'); ?></span>
@@ -149,27 +149,27 @@ final class AdminPage
                     </section>
 
                     <!-- PASTE PANEL -->
-                    <section class="ox-card ox-panel-content" data-ox-panel="paste" hidden aria-label="<?php echo esc_attr__('Paste code', 'oxyai-oxygen'); ?>">
+                    <section class="ox-card ox-panel-content" data-ox-panel="paste" id="oxyai-panel-paste" role="tabpanel" aria-labelledby="oxyai-tab-paste" tabindex="0" hidden>
                         <div class="ox-card__body">
                             <div class="ox-source">
-                                <div class="ox-source__tabs" role="tablist">
-                                    <button type="button" class="ox-source__tab is-active" role="tab" data-oxyai-tab="html">HTML</button>
-                                    <button type="button" class="ox-source__tab" role="tab" data-oxyai-tab="css">CSS</button>
-                                    <button type="button" class="ox-source__tab" role="tab" data-oxyai-tab="js">JS</button>
+                                <div class="ox-source__tabs" role="tablist" aria-label="<?php echo esc_attr__('Source language', 'oxyai-oxygen'); ?>">
+                                    <button type="button" class="ox-source__tab is-active" role="tab" id="oxyai-tab-source-html" aria-controls="oxyai-source-html" aria-selected="true" tabindex="0" data-oxyai-tab="html">HTML</button>
+                                    <button type="button" class="ox-source__tab" role="tab" id="oxyai-tab-source-css" aria-controls="oxyai-source-css" aria-selected="false" tabindex="-1" data-oxyai-tab="css">CSS</button>
+                                    <button type="button" class="ox-source__tab" role="tab" id="oxyai-tab-source-js" aria-controls="oxyai-source-js" aria-selected="false" tabindex="-1" data-oxyai-tab="js">JS</button>
                                 </div>
-                                <div data-oxyai-panel="html" class="ox-source__panel">
+                                <div data-oxyai-panel="html" id="oxyai-source-html" role="tabpanel" aria-labelledby="oxyai-tab-source-html" class="ox-source__panel">
                                     <label class="ox-field">
                                         <span class="ox-sr"><?php echo esc_html__('HTML source', 'oxyai-oxygen'); ?></span>
                                         <textarea id="oxyai-html" class="ox-textarea ox-textarea--code" placeholder="<?php echo esc_attr__('Paste HTML here…', 'oxyai-oxygen'); ?>"></textarea>
                                     </label>
                                 </div>
-                                <div data-oxyai-panel="css" class="ox-source__panel" hidden>
+                                <div data-oxyai-panel="css" id="oxyai-source-css" role="tabpanel" aria-labelledby="oxyai-tab-source-css" class="ox-source__panel" hidden>
                                     <label class="ox-field">
                                         <span class="ox-sr"><?php echo esc_html__('CSS source', 'oxyai-oxygen'); ?></span>
                                         <textarea id="oxyai-css" class="ox-textarea ox-textarea--code" placeholder="<?php echo esc_attr__('Optional CSS — kept as a CSS Code block when needed.', 'oxyai-oxygen'); ?>"></textarea>
                                     </label>
                                 </div>
-                                <div data-oxyai-panel="js" class="ox-source__panel" hidden>
+                                <div data-oxyai-panel="js" id="oxyai-source-js" role="tabpanel" aria-labelledby="oxyai-tab-source-js" class="ox-source__panel" hidden>
                                     <label class="ox-field">
                                         <span class="ox-sr"><?php echo esc_html__('JavaScript source', 'oxyai-oxygen'); ?></span>
                                         <textarea id="oxyai-js" class="ox-textarea ox-textarea--code" placeholder="<?php echo esc_attr__('Optional JavaScript.', 'oxyai-oxygen'); ?>"></textarea>
@@ -199,7 +199,7 @@ final class AdminPage
                     </section>
 
                     <!-- APPLY PANEL -->
-                    <section class="ox-card ox-panel-content" data-ox-panel="apply" hidden aria-label="<?php echo esc_attr__('Send to page', 'oxyai-oxygen'); ?>">
+                    <section class="ox-card ox-panel-content" data-ox-panel="apply" id="oxyai-panel-apply" role="tabpanel" aria-labelledby="oxyai-tab-apply" tabindex="0" hidden>
                         <div class="ox-card__body">
                             <label class="ox-field">
                                 <span class="ox-field__label"><?php echo esc_html__('Target page', 'oxyai-oxygen'); ?></span>

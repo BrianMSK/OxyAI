@@ -54,15 +54,15 @@
           </header>
 
           <nav class="ox-modes" role="tablist" aria-label="OxyAI mode">
-            <button type="button" class="ox-mode-tab is-active" role="tab" aria-selected="true" data-ox-mode-tab="ai">
+            <button type="button" class="ox-mode-tab is-active" role="tab" aria-selected="true" tabindex="0" id="ox-tab-ai" aria-controls="ox-panel-ai" data-ox-mode-tab="ai">
               <span class="ox-mode-tab__icon" aria-hidden="true">✦</span>
               <span>Generate</span>
             </button>
-            <button type="button" class="ox-mode-tab" role="tab" aria-selected="false" data-ox-mode-tab="paste">
+            <button type="button" class="ox-mode-tab" role="tab" aria-selected="false" tabindex="-1" id="ox-tab-paste" aria-controls="ox-panel-paste" data-ox-mode-tab="paste">
               <span class="ox-mode-tab__icon" aria-hidden="true">⌘</span>
               <span>Paste</span>
             </button>
-            <button type="button" class="ox-mode-tab" role="tab" aria-selected="false" data-ox-mode-tab="edit">
+            <button type="button" class="ox-mode-tab" role="tab" aria-selected="false" tabindex="-1" id="ox-tab-edit" aria-controls="ox-panel-edit" data-ox-mode-tab="edit">
               <span class="ox-mode-tab__icon" aria-hidden="true">✎</span>
               <span>Edit selected</span>
             </button>
@@ -89,7 +89,7 @@
             </div>
 
             <!-- AI MODE -->
-            <section class="ox-mode-panel" data-ox-mode-panel="ai">
+            <section class="ox-mode-panel" data-ox-mode-panel="ai" id="ox-panel-ai" role="tabpanel" aria-labelledby="ox-tab-ai" tabindex="0">
               <label class="ox-field">
                 <span class="ox-field__label">What should I build?</span>
                 <textarea class="ox-textarea ox-textarea--prompt" data-ox-prompt placeholder="e.g. Pricing section with three tiers, monthly/yearly toggle, and a featured plan…"></textarea>
@@ -118,20 +118,20 @@
             </section>
 
             <!-- PASTE MODE -->
-            <section class="ox-mode-panel" data-ox-mode-panel="paste" hidden>
+            <section class="ox-mode-panel" data-ox-mode-panel="paste" id="ox-panel-paste" role="tabpanel" aria-labelledby="ox-tab-paste" tabindex="0" hidden>
               <div class="ox-source">
-                <div class="ox-source__tabs" role="tablist">
-                  <button type="button" class="ox-source__tab is-active" role="tab" data-ox-source-tab="html">HTML</button>
-                  <button type="button" class="ox-source__tab" role="tab" data-ox-source-tab="css">CSS</button>
-                  <button type="button" class="ox-source__tab" role="tab" data-ox-source-tab="js">JS</button>
+                <div class="ox-source__tabs" role="tablist" aria-label="Source language">
+                  <button type="button" class="ox-source__tab is-active" role="tab" id="ox-source-tab-html" aria-controls="ox-source-panel-html" aria-selected="true" tabindex="0" data-ox-source-tab="html">HTML</button>
+                  <button type="button" class="ox-source__tab" role="tab" id="ox-source-tab-css" aria-controls="ox-source-panel-css" aria-selected="false" tabindex="-1" data-ox-source-tab="css">CSS</button>
+                  <button type="button" class="ox-source__tab" role="tab" id="ox-source-tab-js" aria-controls="ox-source-panel-js" aria-selected="false" tabindex="-1" data-ox-source-tab="js">JS</button>
                 </div>
-                <div class="ox-source__panel" data-ox-source-panel="html">
+                <div class="ox-source__panel" data-ox-source-panel="html" id="ox-source-panel-html" role="tabpanel" aria-labelledby="ox-source-tab-html">
                   <textarea class="ox-textarea ox-textarea--code" data-ox-html placeholder="Paste HTML here…"></textarea>
                 </div>
-                <div class="ox-source__panel" data-ox-source-panel="css" hidden>
+                <div class="ox-source__panel" data-ox-source-panel="css" id="ox-source-panel-css" role="tabpanel" aria-labelledby="ox-source-tab-css" hidden>
                   <textarea class="ox-textarea ox-textarea--code" data-ox-css placeholder="Optional CSS — kept as CSS Code when needed."></textarea>
                 </div>
-                <div class="ox-source__panel" data-ox-source-panel="js" hidden>
+                <div class="ox-source__panel" data-ox-source-panel="js" id="ox-source-panel-js" role="tabpanel" aria-labelledby="ox-source-tab-js" hidden>
                   <textarea class="ox-textarea ox-textarea--code" data-ox-js placeholder="Optional JavaScript."></textarea>
                 </div>
               </div>
@@ -151,7 +151,7 @@
             </section>
 
             <!-- EDIT MODE -->
-            <section class="ox-mode-panel" data-ox-mode-panel="edit" hidden>
+            <section class="ox-mode-panel" data-ox-mode-panel="edit" id="ox-panel-edit" role="tabpanel" aria-labelledby="ox-tab-edit" tabindex="0" hidden>
               <div class="ox-target">
                 <div class="ox-target__head">
                   <div style="flex:1;min-width:0;">
@@ -263,6 +263,11 @@
       button.addEventListener("click", function () {
         setSourceTab(button.getAttribute("data-ox-source-tab") || "html");
       });
+    });
+
+    // Arrow-key navigation across role="tablist" groups
+    modal.querySelectorAll("[role='tablist']").forEach((tablist) => {
+      tablist.addEventListener("keydown", handleTablistKeys);
     });
 
     // Actions
@@ -431,6 +436,7 @@
       const active = button.getAttribute("data-ox-mode-tab") === currentMode;
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-selected", active ? "true" : "false");
+      button.setAttribute("tabindex", active ? "0" : "-1");
     });
 
     modal.querySelectorAll("[data-ox-mode-panel]").forEach((panel) => {
@@ -451,11 +457,35 @@
 
   function setSourceTab(tab) {
     modal.querySelectorAll("[data-ox-source-tab]").forEach((button) => {
-      button.classList.toggle("is-active", button.getAttribute("data-ox-source-tab") === tab);
+      const active = button.getAttribute("data-ox-source-tab") === tab;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      button.setAttribute("tabindex", active ? "0" : "-1");
     });
     modal.querySelectorAll("[data-ox-source-panel]").forEach((panel) => {
       panel.hidden = panel.getAttribute("data-ox-source-panel") !== tab;
     });
+  }
+
+  function handleTablistKeys(event) {
+    const key = event.key;
+    if (key !== "ArrowRight" && key !== "ArrowLeft" && key !== "Home" && key !== "End") {
+      return;
+    }
+    const tablist = event.currentTarget;
+    const tabs = Array.from(tablist.querySelectorAll("[role='tab']"));
+    if (!tabs.length) return;
+    const active = parentDoc.activeElement || currentDoc.activeElement;
+    const currentIndex = tabs.indexOf(active);
+    if (currentIndex < 0) return;
+    let nextIndex = currentIndex;
+    if (key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+    if (key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (key === "Home") nextIndex = 0;
+    if (key === "End") nextIndex = tabs.length - 1;
+    event.preventDefault();
+    tabs[nextIndex].focus();
+    tabs[nextIndex].click();
   }
 
   // ===== ACTIONS =====
