@@ -129,7 +129,7 @@ class StyleExtractor
     {
         $supportedDeclarationCount = 0;
 
-        foreach ($styles as $cssProp => $value) {
+        foreach (array_keys($styles) as $cssProp) {
             $cssProp = strtolower((string) $cssProp);
 
             if (strpos($cssProp, '_') === 0) {

@@ -17,12 +17,41 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-defined('OXYAI_OXYGEN_VERSION') || define('OXYAI_OXYGEN_VERSION', '0.2.0');
-defined('OXYAI_OXYGEN_PATH') || define('OXYAI_OXYGEN_PATH', plugin_dir_path(__FILE__));
-defined('OXYAI_OXYGEN_URL') || define('OXYAI_OXYGEN_URL', plugin_dir_url(__FILE__));
-defined('OXYAI_OXYGEN_OPTION') || define('OXYAI_OXYGEN_OPTION', 'oxyai_oxygen_settings');
-defined('OXYAI_OXYGEN_HISTORY_OPTION') || define('OXYAI_OXYGEN_HISTORY_OPTION', 'oxyai_oxygen_history');
-defined('OXYAI_OXYGEN_PRESETS_OPTION') || define('OXYAI_OXYGEN_PRESETS_OPTION', 'oxyai_oxygen_presets');
+$oxyaiOxygenExpectedConstants = [
+    'OXYAI_OXYGEN_VERSION' => '0.2.0',
+    'OXYAI_OXYGEN_PATH' => plugin_dir_path(__FILE__),
+    'OXYAI_OXYGEN_URL' => plugin_dir_url(__FILE__),
+    'OXYAI_OXYGEN_OPTION' => 'oxyai_oxygen_settings',
+    'OXYAI_OXYGEN_HISTORY_OPTION' => 'oxyai_oxygen_history',
+    'OXYAI_OXYGEN_PRESETS_OPTION' => 'oxyai_oxygen_presets',
+];
+
+$oxyaiOxygenConstantMismatches = [];
+foreach ($oxyaiOxygenExpectedConstants as $constant => $expected) {
+    if (!defined($constant)) {
+        define($constant, $expected);
+        continue;
+    }
+
+    $actual = constant($constant);
+    if (!is_string($actual) || $actual === '') {
+        $oxyaiOxygenConstantMismatches[] = $constant;
+        continue;
+    }
+
+    if (in_array($constant, ['OXYAI_OXYGEN_VERSION', 'OXYAI_OXYGEN_PATH', 'OXYAI_OXYGEN_URL'], true) && $actual !== $expected) {
+        $oxyaiOxygenConstantMismatches[] = $constant;
+    }
+}
+
+if ($oxyaiOxygenConstantMismatches !== []) {
+    add_action('admin_notices', static function () use ($oxyaiOxygenConstantMismatches): void {
+        echo '<div class="notice notice-warning"><p>' . esc_html(sprintf(
+            __('OxyAI Oxygen detected pre-defined constants with unexpected values: %s. Check for duplicate plugin loads or manual overrides.', 'oxyai-oxygen'),
+            implode(', ', $oxyaiOxygenConstantMismatches)
+        )) . '</p></div>';
+    });
+}
 
 require_once OXYAI_OXYGEN_PATH . 'vendor/oxygen-html-converter/src/polyfills.php';
 
