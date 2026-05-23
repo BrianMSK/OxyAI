@@ -50,7 +50,7 @@ final class OxygenElementCapabilityService
                 'Use native design properties only for supported element/property pairs listed here.',
                 'Every native style value must be written under breakpoint_base unless a real responsive mapping is implemented.',
                 'Length values must use Oxygen structured values: {number, unit, style}.',
-                'For plain Oxygen Container/Text/Image elements, native design properties improve builder editability but class CssCode remains the reliable frontend render fallback in Oxygen 6 / Breakdance Oxygen.',
+                'For plain Oxygen Container/Text/Image elements, OxyAI stores direct class selector styles in the Oxygen selector library so the editor and compiler can see them.',
                 'Only strip class CSS for element types explicitly marked cssFallbackCanBeStripped=true.',
                 'Keep class CSS in CssCode for pseudo selectors, media queries, keyframes, complex selectors, responsive variants, and any unverified property.',
                 'Do not strip CssCode fallback unless conversion audit proves every declaration in the selector was consumed natively.',
@@ -58,8 +58,9 @@ final class OxygenElementCapabilityService
             'classStylingPolicy' => [
                 'Always preserve stable semantic classes on generated elements.',
                 'Class CSS is the authoritative fallback for visual fidelity.',
-                'Native properties are for Oxygen editability and compiled CSS, not a reason to drop unsupported CSS.',
-                'Prefer simple selectors scoped to the generated root class so future CSS stripping can safely reason about ownership.',
+                'Direct single-class selectors such as .hero-title are registered as Oxygen selector properties when registerSelectors is enabled.',
+                'Prefer simple selectors scoped to the generated root class so OxyAI can map editable selector properties safely.',
+                'Keep descendant selectors, grouped selectors, pseudo states, media queries, and animations in CssCode.',
             ],
             'elements' => array_values($elements),
         ];

@@ -16,7 +16,7 @@ final class OxygenPayloadAdapter
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
 
         if (!empty($options['useSelectors'])) {
-            $data['audit']['followUp'][] = __('Selector-library mode is staged: classes are preserved and unsupported CSS remains in CSS Code until the Oxygen selector storage contract is verified.', 'oxyai-oxygen');
+            $data['audit']['followUp'][] = __('Selector-library mode is enabled: direct class selector styles are registered as Oxygen selector properties for editor visibility; complex selectors, pseudo states, media queries, and unsupported CSS remain in CSS Code.', 'oxyai-oxygen');
         }
 
         return [

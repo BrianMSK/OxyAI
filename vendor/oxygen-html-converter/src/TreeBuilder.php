@@ -839,6 +839,7 @@ class TreeBuilder
                 $element['data']['properties'],
                 ['design' => $rule['convertedStyles']]
             );
+            $this->attachSelectorDesignMetadata($element, $rule['selector'], $elementClasses, $rule['convertedStyles']);
 
             if ($this->styleExtractor->supportsDeclarationsFully($rule['declarations'], $elementType)
                 && $this->styleExtractor->canStripCssFallbackForElementType($elementType)
@@ -874,6 +875,56 @@ class TreeBuilder
         }
 
         $this->logDebug('Total rules matched: ' . count($matchedRules));
+    }
+
+    /**
+     * Carry direct class selector styles forward to the OxyAI selector
+     * registration pass. Oxygen 6 compiles selector-library properties for
+     * plain Oxygen elements; it does not reliably compile element-local
+     * data.properties.design for those elements.
+     *
+     * @param array<int, string> $elementClasses
+     * @param array<string, mixed> $convertedStyles
+     */
+    private function attachSelectorDesignMetadata(
+        array &$element,
+        string $selector,
+        array $elementClasses,
+        array $convertedStyles
+    ): void {
+        $className = $this->directClassSelectorName($selector);
+        if ($className === null || $convertedStyles === []) {
+            return;
+        }
+
+        $normalizedElementClasses = array_values(array_filter(array_map(
+            static fn ($item): string => is_string($item) ? ltrim(trim($item), '.') : '',
+            $elementClasses
+        )));
+
+        if (!in_array($className, $normalizedElementClasses, true)) {
+            return;
+        }
+
+        if (!isset($element['data']['properties']['meta']) || !is_array($element['data']['properties']['meta'])) {
+            $element['data']['properties']['meta'] = [];
+        }
+
+        $meta = $element['data']['properties']['meta']['_oxyaiSelectorDesign'][$className] ?? [];
+        $element['data']['properties']['meta']['_oxyaiSelectorDesign'][$className] = $this->mergeProperties(
+            is_array($meta) ? $meta : [],
+            $convertedStyles
+        );
+    }
+
+    private function directClassSelectorName(string $selector): ?string
+    {
+        $selector = trim($selector);
+        if (!preg_match('/^\.(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)$/', $selector, $matches)) {
+            return null;
+        }
+
+        return $matches[1];
     }
 
     /**
