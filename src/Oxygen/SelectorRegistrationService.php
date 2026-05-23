@@ -9,6 +9,7 @@ final class SelectorRegistrationService
     private const SELECTORS_OPTION = 'oxy_selectors_json_string';
     private const COLLECTIONS_OPTION = 'oxy_selectors_collections_json_string';
     private const COLLECTION_NAME = 'OxyAI';
+    private const SELECTOR_DESIGN_META_KEY = '_oxyaiSelectorDesign';
 
     /**
      * @param array<string, mixed> $tree
@@ -17,18 +18,34 @@ final class SelectorRegistrationService
     public function registerTreeSelectors(array &$tree, bool $persist): array
     {
         $classes = [];
-        $this->collectRuntimeClasses($tree['root'] ?? $tree, $classes);
+        $classDesigns = [];
+
+        if (isset($tree['root']) && is_array($tree['root'])) {
+            $this->collectRuntimeClassesAndDesigns($tree['root'], $classes, $classDesigns);
+        } else {
+            $this->collectRuntimeClassesAndDesigns($tree, $classes, $classDesigns);
+        }
 
         $selectors = [];
         $existingSelectors = $this->readOxySelectors();
         $selectorsByClass = $this->indexSelectorsByClassName($existingSelectors);
         $created = 0;
+        $selectorPropertiesAttached = 0;
 
         foreach (array_keys($classes) as $className) {
             $selector = $selectorsByClass[$className] ?? null;
             if ($selector === null) {
                 $selector = $this->createClassSelector($className);
                 $created++;
+            }
+
+            $selectorProperties = $this->transformDesignPropertiesToSelectorProperties($classDesigns[$className] ?? []);
+            if ($selectorProperties !== []) {
+                $selector['properties'] = $this->mergeRecursive(
+                    is_array($selector['properties'] ?? null) ? $selector['properties'] : [],
+                    $selectorProperties
+                );
+                $selectorPropertiesAttached++;
             }
 
             $selectors[$className] = $selector;
@@ -43,6 +60,7 @@ final class SelectorRegistrationService
                 'selectors' => [],
                 'registryOption' => self::SELECTORS_OPTION,
                 'collectionsOption' => self::COLLECTIONS_OPTION,
+                'selectorPropertiesAttached' => 0,
             ];
         }
 
@@ -63,11 +81,12 @@ final class SelectorRegistrationService
             'matched' => count($selectors) - $created,
             'createdOrMatched' => count($selectors),
             'attachedElements' => $attachedElements,
+            'selectorPropertiesAttached' => $selectorPropertiesAttached,
             'selectors' => array_values($selectors),
             'registryOption' => self::SELECTORS_OPTION,
             'collectionsOption' => self::COLLECTIONS_OPTION,
             'collection' => self::COLLECTION_NAME,
-            'note' => 'Runtime classes remain in settings.advanced.classes for rendering; matching Oxygen selector IDs are attached in meta.classes for editor class visibility.',
+            'note' => 'Runtime classes remain in settings.advanced.classes; direct class styles are stored on matching Oxygen selector properties and selector IDs are attached in meta.classes for editor visibility.',
         ];
     }
 
@@ -125,7 +144,7 @@ final class SelectorRegistrationService
      * @param mixed $node
      * @param array<string, true> $classes
      */
-    private function collectRuntimeClasses($node, array &$classes): void
+    private function collectRuntimeClassesAndDesigns(&$node, array &$classes, array &$classDesigns): void
     {
         if (!is_array($node)) {
             return;
@@ -145,14 +164,33 @@ final class SelectorRegistrationService
             }
         }
 
+        $selectorDesigns = $node['data']['properties']['meta'][self::SELECTOR_DESIGN_META_KEY] ?? [];
+        if (is_array($selectorDesigns)) {
+            foreach ($selectorDesigns as $className => $design) {
+                if (!is_string($className) || !is_array($design)) {
+                    continue;
+                }
+
+                $className = $this->normalizeClassName($className);
+                if ($className === null || !isset($classes[$className])) {
+                    continue;
+                }
+
+                $classDesigns[$className] = $this->mergeRecursive($classDesigns[$className] ?? [], $design);
+            }
+
+            unset($node['data']['properties']['meta'][self::SELECTOR_DESIGN_META_KEY]);
+        }
+
         $children = $node['children'] ?? [];
         if (!is_array($children)) {
             return;
         }
 
-        foreach ($children as $child) {
-            $this->collectRuntimeClasses($child, $classes);
+        foreach ($children as &$child) {
+            $this->collectRuntimeClassesAndDesigns($child, $classes, $classDesigns);
         }
+        unset($child);
     }
 
     /**
@@ -222,11 +260,11 @@ final class SelectorRegistrationService
         $indexed = [];
 
         foreach ($selectors as $selector) {
-            if (($selector['type'] ?? null) !== 'class' || !isset($selector['name']) || !is_string($selector['name'])) {
+            if (!isset($selector['name']) || !is_string($selector['name'])) {
                 continue;
             }
 
-            $className = $this->normalizeClassName($selector['name']);
+            $className = $this->classNameFromSelector($selector);
             if ($className !== null) {
                 $indexed[$className] = $selector;
             }
@@ -242,12 +280,171 @@ final class SelectorRegistrationService
     {
         return [
             'id' => $this->uuidForClassName($className),
-            'name' => $className,
-            'type' => 'class',
+            'name' => '.breakdance .' . $className,
+            'type' => 'custom',
             'properties' => [],
             'children' => [],
             'collection' => self::COLLECTION_NAME,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $selector
+     */
+    private function classNameFromSelector(array $selector): ?string
+    {
+        $name = $selector['name'] ?? null;
+        if (!is_string($name)) {
+            return null;
+        }
+
+        if (($selector['type'] ?? null) === 'class') {
+            return $this->normalizeClassName($name);
+        }
+
+        if (preg_match('/^\.breakdance\s+\.(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)$/', trim($name), $matches)) {
+            return $this->normalizeClassName($matches[1]);
+        }
+
+        if (preg_match('/^\.(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)$/', trim($name), $matches)) {
+            return $this->normalizeClassName($matches[1]);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $design
+     * @return array<string, mixed>
+     */
+    private function transformDesignPropertiesToSelectorProperties(array $design): array
+    {
+        $properties = [];
+        $this->collectBreakpointProperties($design, [], $properties);
+
+        return $properties;
+    }
+
+    /**
+     * @param array<string, mixed> $value
+     * @param array<int, string> $path
+     * @param array<string, mixed> $properties
+     */
+    private function collectBreakpointProperties(array $value, array $path, array &$properties): void
+    {
+        foreach ($value as $key => $child) {
+            if (!is_string($key)) {
+                continue;
+            }
+
+            if (str_starts_with($key, 'breakpoint_')) {
+                $this->setSelectorBreakpointValue($properties, $key, implode('.', $path), $child);
+                continue;
+            }
+
+            if (is_array($child)) {
+                $this->collectBreakpointProperties($child, array_merge($path, [$key]), $properties);
+            }
+        }
+    }
+
+    /**
+     * @param mixed $value
+     * @param array<string, mixed> $properties
+     */
+    private function setSelectorBreakpointValue(array &$properties, string $breakpoint, string $sourcePath, $value): void
+    {
+        $targetPaths = $this->selectorPropertyPaths($sourcePath);
+        if ($targetPaths === []) {
+            return;
+        }
+
+        $properties[$breakpoint] = $properties[$breakpoint] ?? [];
+        foreach ($targetPaths as $targetPath) {
+            $this->setNestedValue($properties[$breakpoint], explode('.', $targetPath), $value);
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function selectorPropertyPaths(string $sourcePath): array
+    {
+        $boxMap = [
+            'container.padding' => ['spacing.spacing.padding'],
+            'container.margin' => ['spacing.spacing.margin'],
+            'container.background' => ['background.background_color'],
+            'container.borders.radius' => ['borders.border_radius'],
+            'button.padding' => ['spacing.spacing.padding'],
+            'button.margin' => ['spacing.spacing.margin'],
+            'button.background' => ['background.background_color'],
+            'button.borders.radius' => ['borders.border_radius'],
+        ];
+
+        if (isset($boxMap[$sourcePath])) {
+            return $boxMap[$sourcePath];
+        }
+
+        $layoutMap = [
+            'layout.align_items' => ['layout.flex_align.cross_axis'],
+            'layout.justify_content' => ['layout.flex_align.primary_axis'],
+            'layout.gap' => ['layout.gap.row', 'layout.gap.column'],
+            'layout.row_gap' => ['layout.gap.row'],
+            'layout.column_gap' => ['layout.gap.column'],
+        ];
+
+        if (isset($layoutMap[$sourcePath])) {
+            return $layoutMap[$sourcePath];
+        }
+
+        if (str_starts_with($sourcePath, 'typography.')
+            || str_starts_with($sourcePath, 'layout.')
+            || str_starts_with($sourcePath, 'size.')
+            || str_starts_with($sourcePath, 'position.')
+            || str_starts_with($sourcePath, 'effects.')
+            || str_starts_with($sourcePath, 'overflow.')
+        ) {
+            return [$sourcePath];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param array<string, mixed> $array
+     * @param array<int, string> $path
+     * @param mixed $value
+     */
+    private function setNestedValue(array &$array, array $path, $value): void
+    {
+        $current = &$array;
+        foreach ($path as $key) {
+            if (!isset($current[$key]) || !is_array($current[$key])) {
+                $current[$key] = [];
+            }
+            $current = &$current[$key];
+        }
+
+        $current = $value;
+    }
+
+    /**
+     * @param array<string, mixed> $base
+     * @param array<string, mixed> $override
+     * @return array<string, mixed>
+     */
+    private function mergeRecursive(array $base, array $override): array
+    {
+        foreach ($override as $key => $value) {
+            if (is_array($value) && isset($base[$key]) && is_array($base[$key])) {
+                $base[$key] = $this->mergeRecursive($base[$key], $value);
+                continue;
+            }
+
+            $base[$key] = $value;
+        }
+
+        return $base;
     }
 
     /**
