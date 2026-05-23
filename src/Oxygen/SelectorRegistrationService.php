@@ -52,7 +52,7 @@ final class SelectorRegistrationService
                 $selectorPropertiesAttached++;
             }
 
-            $selectors[$className] = $selector;
+            $selectors[$className] = $this->normalizeSelectorShape($selector);
         }
 
         if ($selectors === []) {
@@ -121,7 +121,10 @@ final class SelectorRegistrationService
             $byId[$selector['id']] = array_merge($byId[$selector['id']] ?? [], $selector);
         }
 
-        $allSelectors = array_values($byId);
+        $allSelectors = array_values(array_map(
+            fn (array $selector): array => $this->normalizeSelectorShape($selector),
+            $byId
+        ));
         $collections = $this->readOxySelectorCollections();
         if (!in_array(self::COLLECTION_NAME, $collections, true)) {
             $collections[] = self::COLLECTION_NAME;
@@ -290,10 +293,32 @@ final class SelectorRegistrationService
             'id' => $this->uuidForClassName($className),
             'name' => $className,
             'type' => 'class',
-            'properties' => [],
+            'properties' => new \stdClass(),
             'children' => [],
             'collection' => self::COLLECTION_NAME,
+            'locked' => false,
         ];
+    }
+
+    /**
+     * Oxygen's frontend selector validator requires properties to be an
+     * object-map and locked to be present. Empty PHP arrays encode as JSON
+     * arrays, so use stdClass for the empty object case.
+     *
+     * @param array<string, mixed> $selector
+     * @return array<string, mixed>
+     */
+    private function normalizeSelectorShape(array $selector): array
+    {
+        if (!array_key_exists('locked', $selector)) {
+            $selector['locked'] = false;
+        }
+
+        if (!isset($selector['properties']) || $selector['properties'] === []) {
+            $selector['properties'] = new \stdClass();
+        }
+
+        return $selector;
     }
 
     /**

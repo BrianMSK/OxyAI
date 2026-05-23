@@ -229,7 +229,12 @@ class StyleExtractor
             return;
         }
 
-        if (in_array($cssProp, ['font-family', 'font-weight', 'font-style', 'text-align', 'text-decoration', 'text-transform'], true)) {
+        if ($cssProp === 'font-weight') {
+            $this->setBreakpointValue($properties, ['typography', 'font_weight'], $this->normalizeFontWeight($value));
+            return;
+        }
+
+        if (in_array($cssProp, ['font-family', 'font-style', 'text-align', 'text-decoration', 'text-transform'], true)) {
             $this->setBreakpointValue($properties, ['typography', $this->oxygenKey($cssProp)], $value);
             return;
         }
@@ -678,6 +683,34 @@ class StyleExtractor
         if (is_numeric($value)) {
             $number = (float) $value;
             return floor($number) === $number ? (int) $number : $number;
+        }
+
+        return $value;
+    }
+
+    /**
+     * @return int|string
+     */
+    private function normalizeFontWeight(string $value)
+    {
+        $value = strtolower(trim($value));
+        if ($value === '') {
+            return $value;
+        }
+
+        $keywordWeights = [
+            'normal' => 400,
+            'bold' => 700,
+            'lighter' => 300,
+            'bolder' => 700,
+        ];
+
+        if (isset($keywordWeights[$value])) {
+            return $keywordWeights[$value];
+        }
+
+        if (preg_match('/^\d+$/', $value)) {
+            return (int) $value;
         }
 
         return $value;

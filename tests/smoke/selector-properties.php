@@ -152,6 +152,7 @@ foreach ($result['selectors'] as $registeredSelector) {
 $selector = $selectorsByName['oxyai-test-hero'];
 assert($selector['type'] === 'class');
 assert($selector['name'] === 'oxyai-test-hero');
+assert($selector['locked'] === false);
 
 $props = $selector['properties']['breakpoint_base'] ?? [];
 assert(($props['spacing']['spacing']['padding']['editMode'] ?? null) === 'advanced');
@@ -167,7 +168,9 @@ assert(($props['typography']['color'] ?? null) === '#0f172a');
 assert(!isset($props['unsupported_bucket']));
 
 $firstCard = $selectorsByName['first-card'];
-assert(($firstCard['properties'] ?? []) === []);
+assert($firstCard['locked'] === false);
+assert(($firstCard['properties'] ?? null) instanceof stdClass);
+assert(str_contains(json_encode($firstCard), '"properties":{}'));
 
 assert(!isset($tree['root']['data']['properties']['meta']['_oxyaiSelectorDesign']));
 assert(!isset($tree['root']['children'][1]['data']['properties']['meta']['_oxyaiSelectorDesign']));
