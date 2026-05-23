@@ -84,23 +84,72 @@ $tree = [
                                     'breakpoint_base' => '#0f172a',
                                 ],
                             ],
+                            'unsupported_bucket' => [
+                                'example' => [
+                                    'breakpoint_base' => 'not-mapped',
+                                ],
+                            ],
                         ],
                     ],
                 ],
             ],
         ],
-        'children' => [],
+        'children' => [
+            [
+                'data' => [
+                    'type' => 'OxygenElements\\Text',
+                    'properties' => [
+                        'settings' => [
+                            'advanced' => [
+                                'classes' => ['first-card'],
+                            ],
+                        ],
+                    ],
+                ],
+                'children' => [],
+            ],
+            [
+                'data' => [
+                    'type' => 'OxygenElements\\Text',
+                    'properties' => [
+                        'settings' => [
+                            'advanced' => [
+                                'classes' => ['second-card'],
+                            ],
+                        ],
+                        'meta' => [
+                            '_oxyaiSelectorDesign' => [
+                                'first-card' => [
+                                    'typography' => [
+                                        'color' => [
+                                            'breakpoint_base' => '#ff0000',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                'children' => [],
+            ],
+        ],
     ],
 ];
 
 $service = new SelectorRegistrationService();
 $result = $service->registerTreeSelectors($tree, false);
 
-assert($result['created'] === 1);
+assert($result['created'] === 3);
 assert($result['selectorPropertiesAttached'] === 1);
-assert($result['attachedElements'] === 1);
+assert($result['attachedElements'] === 3);
+assert($result['unmappedSelectorPropertyPaths'] === ['unsupported_bucket.example']);
 
-$selector = $result['selectors'][0];
+$selectorsByName = [];
+foreach ($result['selectors'] as $registeredSelector) {
+    $selectorsByName[$registeredSelector['name']] = $registeredSelector;
+}
+
+$selector = $selectorsByName['.breakdance .oxyai-test-hero'];
 assert($selector['type'] === 'custom');
 assert($selector['name'] === '.breakdance .oxyai-test-hero');
 
@@ -115,8 +164,13 @@ assert(($props['layout']['gap']['column']['style'] ?? null) === '24px');
 assert(($props['layout']['flex_align']['cross_axis'] ?? null) === 'center');
 assert(($props['layout']['flex_align']['primary_axis'] ?? null) === 'space-between');
 assert(($props['typography']['color'] ?? null) === '#0f172a');
+assert(!isset($props['unsupported_bucket']));
+
+$firstCard = $selectorsByName['.breakdance .first-card'];
+assert(($firstCard['properties'] ?? []) === []);
 
 assert(!isset($tree['root']['data']['properties']['meta']['_oxyaiSelectorDesign']));
+assert(!isset($tree['root']['children'][1]['data']['properties']['meta']['_oxyaiSelectorDesign']));
 assert(in_array($selector['id'], $tree['root']['data']['properties']['meta']['classes'] ?? [], true));
 
 echo "selector-properties-ok\n";

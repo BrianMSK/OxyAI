@@ -31,6 +31,7 @@ final class SelectorRegistrationService
         $selectorsByClass = $this->indexSelectorsByClassName($existingSelectors);
         $created = 0;
         $selectorPropertiesAttached = 0;
+        $unmappedSelectorPropertyPaths = [];
 
         foreach (array_keys($classes) as $className) {
             $selector = $selectorsByClass[$className] ?? null;
@@ -39,7 +40,10 @@ final class SelectorRegistrationService
                 $created++;
             }
 
-            $selectorProperties = $this->transformDesignPropertiesToSelectorProperties($classDesigns[$className] ?? []);
+            $selectorProperties = $this->transformDesignPropertiesToSelectorProperties(
+                $classDesigns[$className] ?? [],
+                $unmappedSelectorPropertyPaths
+            );
             if ($selectorProperties !== []) {
                 $selector['properties'] = $this->mergeRecursive(
                     is_array($selector['properties'] ?? null) ? $selector['properties'] : [],
@@ -61,6 +65,7 @@ final class SelectorRegistrationService
                 'registryOption' => self::SELECTORS_OPTION,
                 'collectionsOption' => self::COLLECTIONS_OPTION,
                 'selectorPropertiesAttached' => 0,
+                'unmappedSelectorPropertyPaths' => [],
             ];
         }
 
@@ -82,6 +87,7 @@ final class SelectorRegistrationService
             'createdOrMatched' => count($selectors),
             'attachedElements' => $attachedElements,
             'selectorPropertiesAttached' => $selectorPropertiesAttached,
+            'unmappedSelectorPropertyPaths' => array_values(array_unique($unmappedSelectorPropertyPaths)),
             'selectors' => array_values($selectors),
             'registryOption' => self::SELECTORS_OPTION,
             'collectionsOption' => self::COLLECTIONS_OPTION,
@@ -150,9 +156,10 @@ final class SelectorRegistrationService
             return;
         }
 
-        $nodeClasses = $node['data']['properties']['settings']['advanced']['classes'] ?? [];
-        if (is_array($nodeClasses)) {
-            foreach ($nodeClasses as $className) {
+        $nodeClassSet = [];
+        $rawNodeClasses = $node['data']['properties']['settings']['advanced']['classes'] ?? [];
+        if (is_array($rawNodeClasses)) {
+            foreach ($rawNodeClasses as $className) {
                 if (!is_string($className)) {
                     continue;
                 }
@@ -160,6 +167,7 @@ final class SelectorRegistrationService
                 $className = $this->normalizeClassName($className);
                 if ($className !== null) {
                     $classes[$className] = true;
+                    $nodeClassSet[$className] = true;
                 }
             }
         }
@@ -172,7 +180,7 @@ final class SelectorRegistrationService
                 }
 
                 $className = $this->normalizeClassName($className);
-                if ($className === null || !isset($classes[$className])) {
+                if ($className === null || !isset($nodeClassSet[$className])) {
                     continue;
                 }
 
@@ -182,12 +190,11 @@ final class SelectorRegistrationService
             unset($node['data']['properties']['meta'][self::SELECTOR_DESIGN_META_KEY]);
         }
 
-        $children = $node['children'] ?? [];
-        if (!is_array($children)) {
+        if (!isset($node['children']) || !is_array($node['children'])) {
             return;
         }
 
-        foreach ($children as &$child) {
+        foreach ($node['children'] as &$child) {
             $this->collectRuntimeClassesAndDesigns($child, $classes, $classDesigns);
         }
         unset($child);
@@ -315,12 +322,13 @@ final class SelectorRegistrationService
 
     /**
      * @param array<string, mixed> $design
+     * @param array<int, string> $unmappedPaths
      * @return array<string, mixed>
      */
-    private function transformDesignPropertiesToSelectorProperties(array $design): array
+    private function transformDesignPropertiesToSelectorProperties(array $design, array &$unmappedPaths): array
     {
         $properties = [];
-        $this->collectBreakpointProperties($design, [], $properties);
+        $this->collectBreakpointProperties($design, [], $properties, $unmappedPaths);
 
         return $properties;
     }
@@ -329,8 +337,9 @@ final class SelectorRegistrationService
      * @param array<string, mixed> $value
      * @param array<int, string> $path
      * @param array<string, mixed> $properties
+     * @param array<int, string> $unmappedPaths
      */
-    private function collectBreakpointProperties(array $value, array $path, array &$properties): void
+    private function collectBreakpointProperties(array $value, array $path, array &$properties, array &$unmappedPaths): void
     {
         foreach ($value as $key => $child) {
             if (!is_string($key)) {
@@ -338,12 +347,12 @@ final class SelectorRegistrationService
             }
 
             if (str_starts_with($key, 'breakpoint_')) {
-                $this->setSelectorBreakpointValue($properties, $key, implode('.', $path), $child);
+                $this->setSelectorBreakpointValue($properties, $key, implode('.', $path), $child, $unmappedPaths);
                 continue;
             }
 
             if (is_array($child)) {
-                $this->collectBreakpointProperties($child, array_merge($path, [$key]), $properties);
+                $this->collectBreakpointProperties($child, array_merge($path, [$key]), $properties, $unmappedPaths);
             }
         }
     }
@@ -351,11 +360,20 @@ final class SelectorRegistrationService
     /**
      * @param mixed $value
      * @param array<string, mixed> $properties
+     * @param array<int, string> $unmappedPaths
      */
-    private function setSelectorBreakpointValue(array &$properties, string $breakpoint, string $sourcePath, $value): void
-    {
+    private function setSelectorBreakpointValue(
+        array &$properties,
+        string $breakpoint,
+        string $sourcePath,
+        $value,
+        array &$unmappedPaths
+    ): void {
         $targetPaths = $this->selectorPropertyPaths($sourcePath);
         if ($targetPaths === []) {
+            if ($sourcePath !== '') {
+                $unmappedPaths[] = $sourcePath;
+            }
             return;
         }
 
