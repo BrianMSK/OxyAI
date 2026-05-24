@@ -83,6 +83,6 @@ Next parity work:
 - Admin-only by default through `manage_options`.
 - Capability can be customized with `oxyai_oxygen_required_capability`.
 - REST calls require WordPress REST nonce for browser use.
-- MCP calls require either an authenticated admin session or the configured `x-oxyai-token`.
+- MCP calls require either an authenticated admin session or the configured `x-oxyai-token` / bearer token header. Query-string tokens are disabled by default because URL credentials are commonly retained in logs and history.
 - AI keys are saved through the plugin settings and encrypted with site salts when OpenSSL is available.
 - History is opt-in and excludes secrets.

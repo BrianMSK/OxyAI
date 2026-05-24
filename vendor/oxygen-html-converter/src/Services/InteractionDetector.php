@@ -167,6 +167,11 @@ class InteractionDetector
             }
 
             if ($shouldPreserve) {
+                $value = $this->sanitizePreservedAttribute($name, $value);
+                if ($value === null) {
+                    continue;
+                }
+
                 $attributes[] = [
                     'name' => $name,
                     'value' => $value,
@@ -304,6 +309,83 @@ class InteractionDetector
             'name' => $attrName,
             'value' => $handlerCode,
         ];
+    }
+
+    private function sanitizePreservedAttribute(string $name, string $value): ?string
+    {
+        $name = strtolower($name);
+        $value = trim($value);
+
+        if ($name === 'ping') {
+            return null;
+        }
+
+        if (in_array($name, ['formaction'], true)) {
+            return $this->sanitizeUrl($value, ['http', 'https']);
+        }
+
+        if (in_array($name, ['target', 'formtarget'], true)) {
+            return in_array($value, ['_self', '_blank', '_parent', '_top'], true) ? $value : null;
+        }
+
+        if ($name === 'formmethod') {
+            $method = strtolower($value);
+            return in_array($method, ['get', 'post', 'dialog'], true) ? $method : null;
+        }
+
+        if ($name === 'formenctype') {
+            $type = strtolower($value);
+            return in_array($type, ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain'], true) ? $type : null;
+        }
+
+        if ($name === 'referrerpolicy') {
+            $policy = strtolower($value);
+            return in_array($policy, [
+                'no-referrer',
+                'no-referrer-when-downgrade',
+                'origin',
+                'origin-when-cross-origin',
+                'same-origin',
+                'strict-origin',
+                'strict-origin-when-cross-origin',
+                'unsafe-url',
+            ], true) ? $policy : null;
+        }
+
+        return (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/', '', $value);
+    }
+
+    /**
+     * @param array<int, string> $allowedSchemes
+     */
+    private function sanitizeUrl(string $url, array $allowedSchemes): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return '';
+        }
+
+        if (preg_match('/^(#|\/|\.\.?\/|\?)/', $url)) {
+            return $url;
+        }
+
+        if (!preg_match('/^([a-zA-Z][a-zA-Z0-9+.-]*):/', $url, $matches)) {
+            return $url;
+        }
+
+        $scheme = strtolower($matches[1]);
+        if (!in_array($scheme, $allowedSchemes, true)) {
+            return '#';
+        }
+
+        if (($scheme === 'http' || $scheme === 'https') && function_exists('esc_url_raw')) {
+            $sanitized = esc_url_raw($url);
+            return is_string($sanitized) && $sanitized !== '' ? $sanitized : '#';
+        }
+
+        $safeUrl = preg_replace('/[\r\n]+/', '', $url);
+
+        return is_string($safeUrl) ? $safeUrl : '#';
     }
 
     // ─── JavaScript pattern detection ────────────────────────────────

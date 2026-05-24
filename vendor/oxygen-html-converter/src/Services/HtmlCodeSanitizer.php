@@ -80,7 +80,7 @@ class HtmlCodeSanitizer
         $wrapped = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><div id="oxy-safe-root">'
             . $html
             . '</div></body></html>';
-        $loaded = $doc->loadHTML($wrapped, LIBXML_NOERROR | LIBXML_NOWARNING);
+        $loaded = $doc->loadHTML($wrapped, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET);
         libxml_clear_errors();
         libxml_use_internal_errors($previousUseErrors);
 

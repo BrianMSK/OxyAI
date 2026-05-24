@@ -182,7 +182,9 @@ OxyAI exposes a single MCP-style endpoint that Codex and other agentic clients c
    https://your-site.tld/wp-json/oxyai/v1/mcp
    ```
 3. Copy the auto-generated **`x-oxyai-token`** value (regenerate if needed).
-4. In Codex, register the endpoint with the token as an `x-oxyai-token` header.
+4. In Codex, register the endpoint with the token as an `x-oxyai-token` header or `Authorization: Bearer <token>` header.
+
+Do not put the MCP token in the URL. Query-string tokens are disabled by default because URLs are commonly retained in server logs, browser history, analytics, and screenshots. If a legacy client cannot send headers, site code can opt into query-string tokens with the `oxyai_oxygen_allow_mcp_query_token` filter.
 
 ### Recommended Workflow
 
@@ -293,7 +295,7 @@ Full details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - Admin-only by default (`manage_options`).
 - Capability customizable via the `oxyai_oxygen_required_capability` filter.
 - Browser REST calls require a WordPress REST nonce.
-- MCP calls require an authenticated admin session **or** the configured `x-oxyai-token`.
+- MCP calls require an authenticated admin session **or** the configured `x-oxyai-token` / bearer token header.
 - AI keys are encrypted with site salts when OpenSSL is available.
 - History is opt-in and excludes secrets.
 - Direct page writes always create a restore backup before mutating Oxygen data.

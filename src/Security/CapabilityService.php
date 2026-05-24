@@ -46,7 +46,9 @@ final class CapabilityService
                 $requestToken = trim($matches[1]);
             }
         }
-        if ($requestToken === '') {
+
+        $allowQueryToken = (bool) apply_filters('oxyai_oxygen_allow_mcp_query_token', false, $request);
+        if ($requestToken === '' && $allowQueryToken) {
             $requestToken = is_scalar($request->get_param('oxyai_token')) ? (string) $request->get_param('oxyai_token') : '';
         }
 

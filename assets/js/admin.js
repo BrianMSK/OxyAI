@@ -305,11 +305,10 @@
   }
 
   function syncCodexUrl() {
-    const token = $("oxyai-mcp-token")?.value || "";
     const target = $("oxyai-codex-url");
     if (!target) return;
     const base = target.getAttribute("data-base-url") || "";
-    target.textContent = base + (base.includes("?") ? "&" : "?") + "oxyai_token=" + encodeURIComponent(token);
+    target.textContent = base;
   }
 
   function regenerateToken() {
@@ -324,7 +323,7 @@
     const value = $("oxyai-codex-url")?.textContent || "";
     if (!value) return;
     await navigator.clipboard.writeText(value);
-    setStatus("Codex URL copied.", "success");
+    setStatus("MCP endpoint copied. Configure the token as x-oxyai-token or Authorization: Bearer.", "success");
   }
 
   // ===== ACTIONS =====

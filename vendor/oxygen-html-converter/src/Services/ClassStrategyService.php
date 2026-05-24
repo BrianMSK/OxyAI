@@ -108,7 +108,10 @@ class ClassStrategyService
      */
     private function setElementClasses(array &$element, array $classes): void
     {
-        $classes = array_values(array_unique(array_filter($classes, static fn ($className): bool => is_string($className) && trim($className) !== '')));
+        $classes = array_values(array_unique(array_filter(array_map(
+            [$this, 'sanitizeClassToken'],
+            $classes
+        ), static fn (?string $className): bool => $className !== null)));
 
         if (!isset($element['data']['properties']['settings'])) {
             $element['data']['properties']['settings'] = [];
@@ -153,5 +156,21 @@ class ClassStrategyService
         }
 
         return array_keys($array) !== range(0, count($array) - 1);
+    }
+
+    private function sanitizeClassToken(mixed $className): ?string
+    {
+        if (!is_string($className)) {
+            return null;
+        }
+
+        $className = trim($className);
+        if ($className === '') {
+            return null;
+        }
+
+        $className = (string) preg_replace('/[\x00-\x20"\'<>`=]+/', '', $className);
+
+        return $className !== '' ? $className : null;
     }
 }
