@@ -24,6 +24,13 @@ class ConversionAuditBuilder
         $headScriptCount = is_array($result['headScriptElements'] ?? null) ? count($result['headScriptElements']) : 0;
         $iconScriptCount = is_array($result['iconScriptElements'] ?? null) ? count($result['iconScriptElements']) : 0;
         $customClasses = is_array($result['customClasses'] ?? null) ? $result['customClasses'] : [];
+        $preserveStyleBlockCss = (bool) ($result['preserveStyleBlockCss'] ?? true);
+        $redistributedCssSelectors = is_array($result['redistributedCssSelectors'] ?? null)
+            ? array_values($result['redistributedCssSelectors'])
+            : [];
+        $retainedCssSelectors = is_array($result['retainedCssSelectors'] ?? null)
+            ? array_values($result['retainedCssSelectors'])
+            : [];
 
         $stripped = [];
         if (!empty($options['safeMode'])) {
@@ -39,6 +46,12 @@ class ConversionAuditBuilder
         }
         if (!empty($customClasses)) {
             $followUp[] = 'Verify residual custom classes and CSS fallbacks on the frontend.';
+        }
+        if (!$preserveStyleBlockCss && $retainedCssSelectors !== []) {
+            $followUp[] = sprintf(
+                '%d CSS selector fallback rule(s) were retained because their native mapping cannot yet be safely stripped for the target Oxygen element type. Do not assume mapCssToProperties removes every CssCode rule.',
+                count($retainedCssSelectors)
+            );
         }
 
         $audit = [
@@ -67,13 +80,9 @@ class ConversionAuditBuilder
                 'includeCssElement' => !empty($options['includeCssElement']),
                 'inlineStyles' => !empty($options['inlineStyles']),
                 'safeMode' => !empty($options['safeMode']),
-                'preserveStyleBlockCss' => $result['preserveStyleBlockCss'] ?? true,
-                'redistributedCssSelectors' => is_array($result['redistributedCssSelectors'] ?? null)
-                    ? array_values($result['redistributedCssSelectors'])
-                    : [],
-                'retainedCssSelectors' => is_array($result['retainedCssSelectors'] ?? null)
-                    ? array_values($result['retainedCssSelectors'])
-                    : [],
+                'preserveStyleBlockCss' => $preserveStyleBlockCss,
+                'redistributedCssSelectors' => $redistributedCssSelectors,
+                'retainedCssSelectors' => $retainedCssSelectors,
                 'info' => $info,
             ],
             'stripped' => $stripped,
