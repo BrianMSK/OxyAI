@@ -18,8 +18,13 @@ assert(isset($all['breakdanceFormsForOxygen']));
 assert(array_key_exists('safeHandAuthoredTargets', $all['breakdanceFormsForOxygen']));
 assert(isset($all['breakdanceFormsForOxygen']['safeHandAuthoredTargets'][ElementTypes::ESSENTIAL_FORM_BUILDER]));
 assert(isset($all['selectorCompilerSupport']['knownNativeSelectorGaps']));
+assert(($all['selectorCompilerSupport']['nativeResponsiveMapping']['@media (max-width:1119px)'] ?? '') === 'breakpoint_tablet_landscape');
+assert(str_contains(
+    $all['selectorCompilerSupport']['nativeResponsiveSelectorScope'],
+    'direct single-class selectors'
+));
 assert(in_array(
-    'Use percentage widths or keep a CSS fallback for layouts that require wrapping, CSS grid, media queries, or flex item growth/shrink behavior.',
+    'Use percentage widths or keep a CSS fallback for layouts that require wrapping, CSS grid, complex media queries, or flex item growth/shrink behavior.',
     $all['selectorCompilerSupport']['knownNativeSelectorGaps'],
     true
 ));

@@ -81,10 +81,17 @@ final class OxygenElementCapabilityService
                 'Length values must use Oxygen structured values: {number, unit, style}.',
                 'For plain Oxygen Container/Text/Image elements, OxyAI stores direct class selector styles in the Oxygen selector library so the editor and compiler can see them.',
                 'Only strip class CSS for element types explicitly marked cssFallbackCanBeStripped=true.',
-                'Keep class CSS in CssCode for pseudo selectors, media queries, keyframes, complex selectors, responsive variants, and any unverified property.',
+                'Direct single-class @media (max-width) rules can map to Oxygen breakpoint selector properties when every declaration is supported. Keep other media queries in CssCode.',
                 'Do not strip CssCode fallback unless conversion audit proves every declaration in the selector was consumed natively.',
             ],
             'selectorCompilerSupport' => [
+                'nativeResponsiveMapping' => [
+                    '@media (max-width:1119px)' => 'breakpoint_tablet_landscape',
+                    '@media (max-width:1023px)' => 'breakpoint_tablet_portrait',
+                    '@media (max-width:767px)' => 'breakpoint_phone_landscape',
+                    '@media (max-width:479px)' => 'breakpoint_phone_portrait',
+                ],
+                'nativeResponsiveSelectorScope' => 'Only direct single-class selectors such as .hero-title are mapped into Oxygen selector breakpoints. Descendant/grouped/pseudo/keyframe/container-query rules remain CSS fallback.',
                 'verifiedNativeSelectorCss' => [
                     'display:flex',
                     'flex-direction via Oxygen flex-flow output',
@@ -101,7 +108,7 @@ final class OxygenElementCapabilityService
                 'knownNativeSelectorGaps' => [
                     'grid-template-columns and grid-template-rows are captured in design data but not emitted by the Oxygen selector compiler on the verified Oxygen 6 site.',
                     'flex-wrap, flex-grow, flex-shrink, and flex-basis are captured in design data but were not emitted by the selector compiler on the verified Oxygen 6 site.',
-                    'Use percentage widths or keep a CSS fallback for layouts that require wrapping, CSS grid, media queries, or flex item growth/shrink behavior.',
+                    'Use percentage widths or keep a CSS fallback for layouts that require wrapping, CSS grid, complex media queries, or flex item growth/shrink behavior.',
                 ],
             ],
             'classStylingPolicy' => [
@@ -109,7 +116,7 @@ final class OxygenElementCapabilityService
                 'Class CSS is the authoritative fallback for visual fidelity.',
                 'Direct single-class selectors such as .hero-title are registered as Oxygen selector properties when registerSelectors is enabled.',
                 'Prefer simple selectors scoped to the generated root class so OxyAI can map editable selector properties safely.',
-                'Keep descendant selectors, grouped selectors, pseudo states, media queries, and animations in CssCode.',
+                'Keep descendant selectors, grouped selectors, pseudo states, unsupported media queries, and animations in CssCode.',
             ],
             'elements' => array_values($elements),
         ];
@@ -432,7 +439,7 @@ final class OxygenElementCapabilityService
                     'requiredContentPaths' => $this->dynamicPropertyPaths($entry),
                     'mustRemainClassCss' => [
                         'unknown element-specific design schema',
-                        'media queries',
+                        'unsupported media queries',
                         'pseudo selectors',
                         'complex selectors',
                         'unverified property paths',
@@ -502,11 +509,11 @@ final class OxygenElementCapabilityService
                 'overflow' => 'overflow.{property}.breakpoint_base',
             ],
             'mustRemainClassCss' => [
-                'media queries',
+                'unsupported media queries',
                 'pseudo selectors',
                 'keyframes and animations',
                 'complex selectors',
-                'responsive variants until media queries map to Oxygen breakpoints',
+                'responsive variants outside direct single-class max-width media rules',
                 'unknown or unverified Oxygen schema paths',
             ],
         ], $extra);
