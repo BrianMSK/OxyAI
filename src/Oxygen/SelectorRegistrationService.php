@@ -108,12 +108,14 @@ final class SelectorRegistrationService
         $existing = $this->readOxySelectors();
         $byId = [];
         foreach ($existing as $selector) {
+            $selector = $this->normalizeSelectorShape($selector);
             if (isset($selector['id']) && is_string($selector['id']) && $selector['id'] !== '') {
                 $byId[$selector['id']] = $selector;
             }
         }
 
         foreach ($selectors as $selector) {
+            $selector = $this->normalizeSelectorShape($selector);
             if (!isset($selector['id']) || !is_string($selector['id']) || $selector['id'] === '') {
                 continue;
             }
@@ -317,6 +319,9 @@ final class SelectorRegistrationService
         if ($className !== null) {
             $selector['type'] = 'class';
             $selector['name'] = $className;
+            if (!isset($selector['id']) || !is_string($selector['id']) || $selector['id'] === '') {
+                $selector['id'] = $this->uuidForClassName($className);
+            }
         }
 
         if (!array_key_exists('locked', $selector)) {

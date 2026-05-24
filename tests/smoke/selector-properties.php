@@ -26,6 +26,24 @@ if (!function_exists('wp_unslash')) {
     }
 }
 
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($value)
+    {
+        return json_encode($value);
+    }
+}
+
+if (!function_exists('update_option')) {
+    function update_option(string $key, $value, bool $autoload = false): bool
+    {
+        global $oxyaiSelectorPropertiesOptions;
+
+        $oxyaiSelectorPropertiesOptions[$key] = $value;
+
+        return true;
+    }
+}
+
 $length = static fn (int $number): array => [
     'number' => $number,
     'unit' => 'px',
@@ -203,11 +221,31 @@ assert(!isset($tree['root']['data']['properties']['meta']['_oxyaiSelectorDesign'
 assert(!isset($tree['root']['children'][1]['data']['properties']['meta']['_oxyaiSelectorDesign']));
 assert(in_array($selector['id'], $tree['root']['data']['properties']['meta']['classes'] ?? [], true));
 assert(($tree['root']['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
-assert(($tree['root']['children'][0]['data']['properties']['settings']['advanced']['classes'] ?? null) === ['missing-id-card']);
+assert(($tree['root']['children'][0]['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
 assert(($tree['root']['children'][1]['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
 
 foreach ($result['selectors'] as $registeredSelector) {
     assert(!str_starts_with((string) $registeredSelector['name'], '.breakdance'));
 }
+
+$missingIdCard = $selectorsByName['missing-id-card'];
+assert(isset($missingIdCard['id']) && is_string($missingIdCard['id']) && $missingIdCard['id'] !== '');
+assert(in_array($missingIdCard['id'], $tree['root']['children'][0]['data']['properties']['meta']['classes'] ?? [], true));
+
+$service->persistSelectors($result['selectors']);
+
+$persistedSelectors = json_decode((string) ($oxyaiSelectorPropertiesOptions['oxy_selectors_json_string'] ?? ''), true);
+assert(is_array($persistedSelectors));
+
+$persistedByName = [];
+foreach ($persistedSelectors as $persistedSelector) {
+    assert(is_array($persistedSelector));
+    $persistedByName[$persistedSelector['name'] ?? ''] = $persistedSelector;
+}
+
+assert(isset($persistedByName['missing-id-card']));
+assert(($persistedByName['missing-id-card']['id'] ?? '') === $missingIdCard['id']);
+assert(($persistedByName['missing-id-card']['type'] ?? '') === 'class');
+assert(!str_starts_with((string) ($persistedByName['missing-id-card']['name'] ?? ''), '.'));
 
 echo "selector-properties-ok\n";
