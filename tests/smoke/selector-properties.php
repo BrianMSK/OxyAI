@@ -9,6 +9,12 @@ require_once __DIR__ . '/../../src/Oxygen/SelectorRegistrationService.php';
 if (!function_exists('get_option')) {
     function get_option(string $key, $default = [])
     {
+        global $oxyaiSelectorPropertiesOptions;
+
+        if (is_array($oxyaiSelectorPropertiesOptions) && array_key_exists($key, $oxyaiSelectorPropertiesOptions)) {
+            return $oxyaiSelectorPropertiesOptions[$key];
+        }
+
         return $default;
     }
 }
@@ -101,7 +107,7 @@ $tree = [
                     'properties' => [
                         'settings' => [
                             'advanced' => [
-                                'classes' => ['first-card'],
+                                'classes' => ['first-card', 'missing-id-card'],
                             ],
                         ],
                     ],
@@ -136,10 +142,30 @@ $tree = [
     ],
 ];
 
+$oxyaiSelectorPropertiesOptions = [
+    'oxy_selectors_json_string' => [
+        [
+            'id' => 'legacy-hero-id',
+            'name' => '.breakdance .oxyai-test-hero',
+            'type' => 'custom',
+            'properties' => [],
+            'children' => [],
+            'collection' => 'OxyAI',
+        ],
+        [
+            'name' => '.missing-id-card',
+            'type' => 'class',
+            'properties' => [],
+            'children' => [],
+            'collection' => 'OxyAI',
+        ],
+    ],
+];
+
 $service = new SelectorRegistrationService();
 $result = $service->registerTreeSelectors($tree, false);
 
-assert($result['created'] === 3);
+assert($result['created'] === 2);
 assert($result['selectorPropertiesAttached'] === 1);
 assert($result['attachedElements'] === 3);
 assert($result['unmappedSelectorPropertyPaths'] === ['unsupported_bucket.example']);
@@ -153,6 +179,7 @@ $selector = $selectorsByName['oxyai-test-hero'];
 assert($selector['type'] === 'class');
 assert($selector['name'] === 'oxyai-test-hero');
 assert($selector['locked'] === false);
+assert($selector['id'] === 'legacy-hero-id');
 
 $props = $selector['properties']['breakpoint_base'] ?? [];
 assert(($props['spacing']['spacing']['padding']['editMode'] ?? null) === 'advanced');
@@ -176,7 +203,11 @@ assert(!isset($tree['root']['data']['properties']['meta']['_oxyaiSelectorDesign'
 assert(!isset($tree['root']['children'][1]['data']['properties']['meta']['_oxyaiSelectorDesign']));
 assert(in_array($selector['id'], $tree['root']['data']['properties']['meta']['classes'] ?? [], true));
 assert(($tree['root']['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
-assert(($tree['root']['children'][0]['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
+assert(($tree['root']['children'][0]['data']['properties']['settings']['advanced']['classes'] ?? null) === ['missing-id-card']);
 assert(($tree['root']['children'][1]['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
+
+foreach ($result['selectors'] as $registeredSelector) {
+    assert(!str_starts_with((string) $registeredSelector['name'], '.breakdance'));
+}
 
 echo "selector-properties-ok\n";

@@ -52,7 +52,7 @@ final class SelectorRegistrationService
                 $selectorPropertiesAttached++;
             }
 
-            $selectors[$className] = $this->normalizeSelectorShape($selector);
+            $selectors[$className] = $this->normalizeSelectorShape($selector, $className);
         }
 
         if ($selectors === []) {
@@ -237,6 +237,7 @@ final class SelectorRegistrationService
         }
 
         $selectorIds = [];
+        $promotedClasses = [];
         foreach ($nodeClasses as $className) {
             if (!is_string($className)) {
                 continue;
@@ -245,6 +246,7 @@ final class SelectorRegistrationService
             $normalized = $this->normalizeClassName($className);
             if ($normalized !== null && isset($selectors[$normalized]['id'])) {
                 $selectorIds[] = (string) $selectors[$normalized]['id'];
+                $promotedClasses[$normalized] = true;
             }
         }
 
@@ -258,7 +260,7 @@ final class SelectorRegistrationService
         $merged = array_values(array_unique(array_merge($existing, $selectorIds)));
         $node['data']['properties']['meta']['classes'] = $merged;
         $node['data']['properties']['meta']['classes_conditions'] = $node['data']['properties']['meta']['classes_conditions'] ?? [];
-        $this->removePromotedRuntimeClasses($node, $selectors);
+        $this->removePromotedRuntimeClasses($node, $promotedClasses);
         $attachedElements++;
     }
 
@@ -308,8 +310,15 @@ final class SelectorRegistrationService
      * @param array<string, mixed> $selector
      * @return array<string, mixed>
      */
-    private function normalizeSelectorShape(array $selector): array
+    private function normalizeSelectorShape(array $selector, ?string $className = null): array
     {
+        $isOxyAiSelector = ($selector['collection'] ?? null) === self::COLLECTION_NAME;
+        $className = $className ?? ($isOxyAiSelector ? $this->classNameFromSelector($selector) : null);
+        if ($className !== null) {
+            $selector['type'] = 'class';
+            $selector['name'] = $className;
+        }
+
         if (!array_key_exists('locked', $selector)) {
             $selector['locked'] = false;
         }
@@ -348,9 +357,9 @@ final class SelectorRegistrationService
 
     /**
      * @param array<string, mixed> $node
-     * @param array<string, array<string, mixed>> $selectors
+     * @param array<string, true> $promotedClasses
      */
-    private function removePromotedRuntimeClasses(array &$node, array $selectors): void
+    private function removePromotedRuntimeClasses(array &$node, array $promotedClasses): void
     {
         $nodeClasses = $node['data']['properties']['settings']['advanced']['classes'] ?? [];
         if (!is_array($nodeClasses) || $nodeClasses === []) {
@@ -365,7 +374,7 @@ final class SelectorRegistrationService
             }
 
             $normalized = $this->normalizeClassName($className);
-            if ($normalized !== null && isset($selectors[$normalized])) {
+            if ($normalized !== null && isset($promotedClasses[$normalized])) {
                 continue;
             }
 

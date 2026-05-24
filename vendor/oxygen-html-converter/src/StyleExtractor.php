@@ -693,27 +693,26 @@ class StyleExtractor
      */
     private function normalizeFontWeight(string $value)
     {
-        $value = strtolower(trim($value));
-        if ($value === '') {
-            return $value;
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return $trimmed;
         }
 
+        $normalized = strtolower($trimmed);
         $keywordWeights = [
             'normal' => 400,
             'bold' => 700,
-            'lighter' => 300,
-            'bolder' => 700,
         ];
 
-        if (isset($keywordWeights[$value])) {
-            return $keywordWeights[$value];
+        if (isset($keywordWeights[$normalized])) {
+            return $keywordWeights[$normalized];
         }
 
-        if (preg_match('/^\d+$/', $value)) {
-            return (int) $value;
+        if (preg_match('/^\d+$/', $trimmed)) {
+            return (int) $trimmed;
         }
 
-        return $value;
+        return null;
     }
 
     private function boxCategoryForElement(string $elementType): string

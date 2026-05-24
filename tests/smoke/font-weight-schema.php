@@ -21,13 +21,20 @@ assert(!str_contains(json_encode($numeric), '"breakpoint_base":"700"'));
 $keywordCases = [
     'normal' => 400,
     'bold' => 700,
-    'lighter' => 300,
-    'bolder' => 700,
 ];
 
 foreach ($keywordCases as $keyword => $expected) {
     $design = $extractor->toOxygenProperties(['font-weight' => $keyword]);
     assert(($design['typography']['font_weight']['breakpoint_base'] ?? null) === $expected);
 }
+
+$relative = $extractor->toOxygenProperties(['font-weight' => 'lighter']);
+assert(array_key_exists('breakpoint_base', $relative['typography']['font_weight'] ?? []));
+assert($relative['typography']['font_weight']['breakpoint_base'] === null);
+
+$variable = $extractor->toOxygenProperties(['font-weight' => 'var(--BrandWeight)']);
+assert(array_key_exists('breakpoint_base', $variable['typography']['font_weight'] ?? []));
+assert($variable['typography']['font_weight']['breakpoint_base'] === null);
+assert(!str_contains(json_encode($variable), 'brandweight'));
 
 echo "font-weight-schema-ok\n";
