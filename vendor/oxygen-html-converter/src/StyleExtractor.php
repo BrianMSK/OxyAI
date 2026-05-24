@@ -712,7 +712,21 @@ class StyleExtractor
             return (int) $trimmed;
         }
 
-        return null;
+        $validKeywords = [
+            'bolder',
+            'lighter',
+            'inherit',
+            'initial',
+            'revert',
+            'revert-layer',
+            'unset',
+        ];
+
+        if (in_array($normalized, $validKeywords, true)) {
+            return $normalized;
+        }
+
+        return $trimmed;
     }
 
     private function boxCategoryForElement(string $elementType): string

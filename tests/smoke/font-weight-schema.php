@@ -29,12 +29,13 @@ foreach ($keywordCases as $keyword => $expected) {
 }
 
 $relative = $extractor->toOxygenProperties(['font-weight' => 'lighter']);
-assert(array_key_exists('breakpoint_base', $relative['typography']['font_weight'] ?? []));
-assert($relative['typography']['font_weight']['breakpoint_base'] === null);
+assert(($relative['typography']['font_weight']['breakpoint_base'] ?? null) === 'lighter');
+
+$cssWide = $extractor->toOxygenProperties(['font-weight' => 'revert-layer']);
+assert(($cssWide['typography']['font_weight']['breakpoint_base'] ?? null) === 'revert-layer');
 
 $variable = $extractor->toOxygenProperties(['font-weight' => 'var(--BrandWeight)']);
-assert(array_key_exists('breakpoint_base', $variable['typography']['font_weight'] ?? []));
-assert($variable['typography']['font_weight']['breakpoint_base'] === null);
+assert(($variable['typography']['font_weight']['breakpoint_base'] ?? null) === 'var(--BrandWeight)');
 assert(!str_contains(json_encode($variable), 'brandweight'));
 
 echo "font-weight-schema-ok\n";
