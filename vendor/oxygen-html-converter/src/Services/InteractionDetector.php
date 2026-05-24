@@ -314,32 +314,31 @@ class InteractionDetector
     private function sanitizePreservedAttribute(string $name, string $value): ?string
     {
         $name = strtolower($name);
-        $value = trim($value);
 
         if ($name === 'ping') {
             return null;
         }
 
-        if (in_array($name, ['formaction'], true)) {
-            return $this->sanitizeUrl($value, ['http', 'https']);
+        if ($name === 'formaction') {
+            return $this->sanitizeUrl(trim($value), ['http', 'https']);
         }
 
         if (in_array($name, ['target', 'formtarget'], true)) {
-            return $this->sanitizeBrowsingContext($value);
+            return $this->sanitizeBrowsingContext(trim($value));
         }
 
         if ($name === 'formmethod') {
-            $method = strtolower($value);
+            $method = strtolower(trim($value));
             return in_array($method, ['get', 'post', 'dialog'], true) ? $method : null;
         }
 
         if ($name === 'formenctype') {
-            $type = strtolower($value);
+            $type = strtolower(trim($value));
             return in_array($type, ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain'], true) ? $type : null;
         }
 
         if ($name === 'referrerpolicy') {
-            $policy = strtolower($value);
+            $policy = strtolower(trim($value));
             return in_array($policy, [
                 'no-referrer',
                 'no-referrer-when-downgrade',
@@ -352,6 +351,9 @@ class InteractionDetector
             ], true) ? $policy : null;
         }
 
+        // Generic preserved attributes (data-*, aria-*, value, placeholder, ...):
+        // strip C0 controls + DEL but keep boundary whitespace intact so user-facing
+        // defaults like `value="  hello  "` survive conversion.
         return (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/', '', $value);
     }
 

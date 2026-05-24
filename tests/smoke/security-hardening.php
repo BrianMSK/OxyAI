@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use OxyHtmlConverter\Services\ClassStrategyService;
 use OxyHtmlConverter\Services\InteractionDetector;
 
 require_once __DIR__ . '/../../vendor/oxygen-html-converter/src/Services/InteractionDetector.php';
+require_once __DIR__ . '/../../vendor/oxygen-html-converter/src/Services/ClassStrategyService.php';
+require_once __DIR__ . '/../../vendor/oxygen-html-converter/src/TreeBuilder.php';
 
 /**
  * @param array<int, array<string, mixed>> $attributes
@@ -31,12 +34,21 @@ function oxyai_smoke_sanitize(\DOMElement $node): array
     );
 }
 
+function oxyai_smoke_invoke_private(object $object, string $method, array $args): mixed
+{
+    $reflection = new ReflectionMethod($object, $method);
+    $reflection->setAccessible(true);
+
+    return $reflection->invokeArgs($object, $args);
+}
+
 $dom = new DOMDocument('1.0', 'UTF-8');
 $dom->loadHTML(
     '<form>'
     . '<button id="b1" formaction="javascript:alert(1)" formmethod="TRACE" formtarget="popup" ping="https://attacker.test/p" data-safe="ok">b1</button>'
     . '<button id="b3" formtarget="_BLANK">b3</button>'
     . '<button id="b4" formtarget="_evil">b4</button>'
+    . '<input  id="b5" value="  hello  " placeholder="  pad  " data-keep="  spaced  ">'
     . '</form>',
     LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET
 );
@@ -46,6 +58,9 @@ foreach ($dom->getElementsByTagName('button') as $btn) {
     assert($btn instanceof DOMElement);
     $buttons[$btn->getAttribute('id')] = $btn;
 }
+
+$input = $dom->getElementsByTagName('input')->item(0);
+assert($input instanceof DOMElement);
 
 // Inject a control-char payload programmatically so it survives HTML parsing intact.
 $smuggled = $dom->createElement('button');
@@ -73,5 +88,30 @@ assert(($b3['formtarget'] ?? null) === '_blank', '_BLANK must normalize to _blan
 // b4: reserved _-prefixed names other than the four keywords must be rejected.
 $b4 = oxyai_smoke_sanitize($buttons['b4']);
 assert(!array_key_exists('formtarget', $b4), 'reserved _-prefixed target must be dropped');
+
+// b5: preserved attributes that hit the generic fallback (value, placeholder, data-*)
+// must keep boundary whitespace — those are user-visible defaults.
+$b5 = oxyai_smoke_sanitize($input);
+assert(($b5['value'] ?? null) === '  hello  ', 'value boundary whitespace must be preserved');
+assert(($b5['placeholder'] ?? null) === '  pad  ', 'placeholder boundary whitespace must be preserved');
+assert(($b5['data-keep'] ?? null) === '  spaced  ', 'data-* boundary whitespace must be preserved');
+
+// Class tokens: Tailwind arbitrary-value utilities containing quotes must survive.
+$classService = (new ReflectionClass(ClassStrategyService::class))->newInstanceWithoutConstructor();
+$tailwindContent = "before:content-['_↗']";
+$tailwindAttr = 'data-[state=open]:bg-blue-500';
+$malicious = "evil<script";
+
+assert(oxyai_smoke_invoke_private($classService, 'sanitizeClassToken', [$tailwindContent]) === $tailwindContent, 'Tailwind quoted content utility must survive');
+assert(oxyai_smoke_invoke_private($classService, 'sanitizeClassToken', [$tailwindAttr]) === $tailwindAttr, 'Tailwind arbitrary variant must survive');
+assert(oxyai_smoke_invoke_private($classService, 'sanitizeClassToken', [$malicious]) === null, 'class token containing < must be dropped');
+
+// Ids: valid but unusual ids (with =) must pass through unchanged so anchor href
+// fragments and JS getElementById references keep matching. Hostile ids drop entirely.
+$treeBuilder = (new ReflectionClass('OxyHtmlConverter\\TreeBuilder'))->newInstanceWithoutConstructor();
+assert(oxyai_smoke_invoke_private($treeBuilder, 'sanitizeHtmlId', ['section=1']) === 'section=1', 'id with `=` must be preserved verbatim');
+assert(oxyai_smoke_invoke_private($treeBuilder, 'sanitizeHtmlId', ['safe:id']) === 'safe:id', 'id with `:` must be preserved verbatim');
+assert(oxyai_smoke_invoke_private($treeBuilder, 'sanitizeHtmlId', ['bad id']) === '', 'id with whitespace must be dropped');
+assert(oxyai_smoke_invoke_private($treeBuilder, 'sanitizeHtmlId', ['"><x']) === '', 'id with quote/angle must be dropped');
 
 echo "security-hardening-ok\n";

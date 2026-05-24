@@ -169,8 +169,14 @@ class ClassStrategyService
             return null;
         }
 
-        $className = (string) preg_replace('/[\x00-\x20"\'<>`]+/', '', $className);
+        // Reject the whole token if it contains chars that could break the rendered
+        // class attribute. Stripping these silently would mutate selectors (e.g.
+        // Tailwind arbitrary-value utilities like `content-['_↗']`) and cause the
+        // generated CSS to no longer match.
+        if (preg_match('/[\x00-\x20<>]/', $className)) {
+            return null;
+        }
 
-        return $className !== '' ? $className : null;
+        return $className;
     }
 }

@@ -1218,8 +1218,15 @@ class TreeBuilder
             return '';
         }
 
-        $id = (string) preg_replace('/[\x00-\x20"\'<>`=]+/', '-', $id);
-        $id = trim($id, '-');
+        // Drop the id entirely if it contains chars that would break the rendered
+        // attribute or selector usage. Rewriting to a safe variant would silently
+        // desynchronise `<a href="#foo=bar">` style fragment links and JS
+        // `document.getElementById('foo=bar')` references from the element they
+        // were meant to target. Valid ids (including `=`, `:`, `[`, ...) pass
+        // through unchanged.
+        if (preg_match('/[\x00-\x20"\'<>`]/', $id)) {
+            return '';
+        }
 
         return $id;
     }
