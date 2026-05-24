@@ -336,8 +336,12 @@ class StyleExtractor
             return;
         }
 
-        if (in_array($cssProp, ['box-shadow', 'transform', 'transition', 'filter', 'backdrop-filter', 'mix-blend-mode'], true)) {
+        if ($cssProp === 'mix-blend-mode') {
             $this->setBreakpointValue($properties, ['effects', $this->oxygenKey($cssProp)], $value);
+            return;
+        }
+
+        if (in_array($cssProp, ['box-shadow', 'transform', 'transition', 'filter', 'backdrop-filter'], true)) {
             return;
         }
 
@@ -629,18 +633,69 @@ class StyleExtractor
 
         if ($cssProp === 'padding' || $cssProp === 'margin') {
             $parts = $this->splitCssTokens($value);
-            return count($parts) >= 1 && count($parts) <= 4;
+            if (count($parts) < 1 || count($parts) > 4) {
+                return false;
+            }
+
+            foreach ($parts as $part) {
+                if ($this->normalizeLength($part) === null) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         if ($cssProp === 'border-radius') {
-            return $this->parseRadiusShorthand($value) !== null;
+            $corners = $this->parseRadiusShorthand($value);
+            if ($corners === null) {
+                return false;
+            }
+
+            foreach ($corners as $corner) {
+                if ($this->normalizeLength($corner) === null) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         if ($cssProp === 'font-weight') {
             return $this->normalizeFontWeight($value) !== null;
         }
 
+        if ($this->isLengthProperty($cssProp)) {
+            return $this->normalizeLength($value) !== null;
+        }
+
+        if (in_array($cssProp, ['box-shadow', 'transform', 'transition', 'filter', 'backdrop-filter'], true)) {
+            return false;
+        }
+
         return true;
+    }
+
+    private function isLengthProperty(string $cssProp): bool
+    {
+        return in_array($cssProp, [
+            'font-size',
+            'line-height',
+            'letter-spacing',
+            'width',
+            'min-width',
+            'max-width',
+            'height',
+            'min-height',
+            'max-height',
+            'gap',
+            'row-gap',
+            'column-gap',
+            'top',
+            'right',
+            'bottom',
+            'left',
+        ], true);
     }
 
     private function isPlainBackgroundColor(string $value): bool
