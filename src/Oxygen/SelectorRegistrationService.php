@@ -55,6 +55,14 @@ final class SelectorRegistrationService
             $selectors[$className] = $this->normalizeSelectorShape($selector, $className);
         }
 
+        $ioTsSanitization = ['sizeStringsRemoved' => 0, 'effectStringsRemoved' => 0, 'typographyStringsRemoved' => 0];
+        foreach ($selectors as $className => &$selectorRef) {
+            if (isset($selectorRef['properties']) && is_array($selectorRef['properties'])) {
+                $this->sanitizePropertiesForIoTs($selectorRef['properties'], $ioTsSanitization);
+            }
+        }
+        unset($selectorRef);
+
         if ($selectors === []) {
             return [
                 'enabled' => true,
@@ -66,6 +74,7 @@ final class SelectorRegistrationService
                 'collectionsOption' => self::COLLECTIONS_OPTION,
                 'selectorPropertiesAttached' => 0,
                 'unmappedSelectorPropertyPaths' => [],
+                'ioTsSanitization' => $ioTsSanitization,
             ];
         }
 
@@ -92,6 +101,7 @@ final class SelectorRegistrationService
             'registryOption' => self::SELECTORS_OPTION,
             'collectionsOption' => self::COLLECTIONS_OPTION,
             'collection' => self::COLLECTION_NAME,
+            'ioTsSanitization' => $ioTsSanitization,
             'note' => 'Runtime classes are promoted to Oxygen selector IDs in meta.classes; direct class styles are stored on matching selector properties for editor visibility and compiled selector CSS.',
         ];
     }
@@ -166,6 +176,7 @@ final class SelectorRegistrationService
         $lockedAdded = 0;
         $propertiesObjectsRepaired = 0;
         $classNamesRepaired = 0;
+        $ioTsSanitization = ['sizeStringsRemoved' => 0, 'effectStringsRemoved' => 0, 'typographyStringsRemoved' => 0];
 
         foreach ($existing as $selector) {
             $before = $this->selectorRepairSignature($selector);
@@ -177,6 +188,7 @@ final class SelectorRegistrationService
             $selector = $this->normalizeSelectorShape($selector);
             if (isset($selector['properties']) && is_array($selector['properties'])) {
                 $this->normalizeSelectorPropertyValues($selector['properties'], $fontWeightsRepaired);
+                $this->sanitizePropertiesForIoTs($selector['properties'], $ioTsSanitization);
             }
 
             if (!$hadLocked && array_key_exists('locked', $selector)) {
@@ -215,6 +227,9 @@ final class SelectorRegistrationService
             'propertiesObjectsRepaired' => $propertiesObjectsRepaired,
             'classNamesRepaired' => $classNamesRepaired,
             'fontWeightsRepaired' => $fontWeightsRepaired,
+            'sizeStringsRemoved' => $ioTsSanitization['sizeStringsRemoved'],
+            'effectStringsRemoved' => $ioTsSanitization['effectStringsRemoved'],
+            'typographyStringsRemoved' => $ioTsSanitization['typographyStringsRemoved'],
             'registryOption' => self::SELECTORS_OPTION,
         ];
     }
@@ -432,6 +447,61 @@ final class SelectorRegistrationService
             }
         }
         unset($value);
+    }
+
+    /**
+     * Strip raw string values from selector properties at paths where the
+     * Oxygen builder's IO-TS schema only accepts structured shapes. The
+     * upstream HTML-to-property converter falls back to raw strings for CSS
+     * values it cannot parse (e.g. `min()`, `clamp()`, `fit-content`,
+     * unitless line-height, transition shorthand) and persisting those
+     * strings makes the builder refuse to decode `oxySelectors`.
+     *
+     * Removal is preferred over coercion: the schema treats missing keys as
+     * undefined (valid) while raw strings hit a hard decode failure.
+     *
+     * @param array<string, mixed> $properties
+     * @param array{sizeStringsRemoved:int,effectStringsRemoved:int,typographyStringsRemoved:int} $counters
+     */
+    private function sanitizePropertiesForIoTs(array &$properties, array &$counters): void
+    {
+        static $sizeKeys = ['width', 'min_width', 'max_width', 'height', 'min_height', 'max_height'];
+        static $sizeKeywords = ['auto', 'fit', 'none', 'inherit', 'initial', 'unset'];
+        static $effectsKeys = ['transition', 'transform', 'box_shadow', 'filter', 'backdrop_filter'];
+        static $typographyKeys = ['line_height', 'letter_spacing'];
+        static $typographyKeywords = ['normal', 'inherit'];
+
+        foreach (array_keys($properties) as $key) {
+            $value = $properties[$key];
+
+            if (is_string($value)) {
+                if (in_array($key, $sizeKeys, true)
+                    && !in_array(strtolower($value), $sizeKeywords, true)
+                ) {
+                    unset($properties[$key]);
+                    $counters['sizeStringsRemoved']++;
+                    continue;
+                }
+
+                if (in_array($key, $effectsKeys, true)) {
+                    unset($properties[$key]);
+                    $counters['effectStringsRemoved']++;
+                    continue;
+                }
+
+                if (in_array($key, $typographyKeys, true)
+                    && !in_array(strtolower($value), $typographyKeywords, true)
+                ) {
+                    unset($properties[$key]);
+                    $counters['typographyStringsRemoved']++;
+                    continue;
+                }
+            }
+
+            if (is_array($value)) {
+                $this->sanitizePropertiesForIoTs($properties[$key], $counters);
+            }
+        }
     }
 
     /**

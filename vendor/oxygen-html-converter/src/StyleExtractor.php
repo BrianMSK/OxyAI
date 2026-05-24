@@ -348,6 +348,9 @@ class StyleExtractor
 
     private function setBreakpointValue(array &$properties, array $path, $value): void
     {
+        if ($value === null) {
+            return;
+        }
         $this->setNestedValue($properties, array_merge($path, [$this->currentBreakpoint]), $value);
     }
 
@@ -365,7 +368,11 @@ class StyleExtractor
                 continue;
             }
 
-            $spacing[$side] = $this->normalizeLength((string) $sides[$side]);
+            $normalized = $this->normalizeLength((string) $sides[$side]);
+            if ($normalized === null) {
+                continue;
+            }
+            $spacing[$side] = $normalized;
         }
 
         if ($fromShorthand) {
@@ -377,7 +384,12 @@ class StyleExtractor
             ];
             $allEqual = count(array_unique($sideValues)) === 1;
             if ($allEqual) {
-                $spacing['all'] = $this->normalizeLength($sideValues[0]);
+                $normalizedAll = $this->normalizeLength($sideValues[0]);
+                if ($normalizedAll === null) {
+                    unset($spacing['all']);
+                } else {
+                    $spacing['all'] = $normalizedAll;
+                }
             } else {
                 unset($spacing['all']);
             }
@@ -400,7 +412,11 @@ class StyleExtractor
         $radius = is_array($existing) ? $existing : [];
 
         foreach ($corners as $corner => $value) {
-            $radius[$corner] = $this->normalizeLength($value);
+            $normalized = $this->normalizeLength($value);
+            if ($normalized === null) {
+                continue;
+            }
+            $radius[$corner] = $normalized;
         }
 
         if ($fromShorthand) {
@@ -412,7 +428,12 @@ class StyleExtractor
             ];
             $allEqual = count(array_unique($cornerValues)) === 1;
             if ($allEqual) {
-                $radius['all'] = $this->normalizeLength($cornerValues[0]);
+                $normalizedAll = $this->normalizeLength($cornerValues[0]);
+                if ($normalizedAll === null) {
+                    unset($radius['all']);
+                } else {
+                    $radius['all'] = $normalizedAll;
+                }
             } else {
                 unset($radius['all']);
             }
@@ -655,13 +676,22 @@ class StyleExtractor
     /**
      * Convert a CSS length into Oxygen's structured scalar shape.
      *
-     * @return array{number:int|float,unit:string,style:string}|string
+     * Returns null for values that cannot be expressed as the strict
+     * `{number, unit, style}` shape Oxygen's IO-TS schema demands at
+     * `size.*`/`typography.*` paths — CSS functions (`min()`, `clamp()`,
+     * `calc()`), unitless numbers (e.g. raw `1.75` for line-height),
+     * keywords outside the small whitelist (`fit-content`, `max-content`),
+     * variables (`var(...)`), etc. Callers MUST treat null as "skip this
+     * declaration" — writing the raw string instead crashes the builder
+     * on load.
+     *
+     * @return array{number:int|float,unit:string,style:string}|string|null
      */
     private function normalizeLength(string $value)
     {
         $value = trim($value);
         if ($value === '') {
-            return $value;
+            return null;
         }
 
         if (in_array(strtolower($value), ['auto', 'fit', 'none', 'inherit', 'initial', 'unset'], true)) {
@@ -689,7 +719,7 @@ class StyleExtractor
             ];
         }
 
-        return $value;
+        return null;
     }
 
     /**
