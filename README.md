@@ -3,7 +3,7 @@
 > AI-assisted HTML, CSS, and JavaScript to native **Oxygen 6** builder elements — with a built-in MCP endpoint for Codex and other agentic clients.
 
 [![WordPress](https://img.shields.io/badge/WordPress-7.0%2B-21759B?logo=wordpress&logoColor=white)](https://wordpress.org/)
-[![PHP](https://img.shields.io/badge/PHP-8.5%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
+[![PHP](https://img.shields.io/badge/PHP-8.4%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![Oxygen Builder](https://img.shields.io/badge/Oxygen-6.x-2271B1)](https://oxygenbuilder.com/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Release](https://img.shields.io/github/v/release/PlayUPSK/OxyAI?include_prereleases&label=release)](https://github.com/PlayUPSK/OxyAI/releases)
@@ -70,7 +70,7 @@ OxyAI Oxygen is a single WordPress plugin that turns raw HTML/CSS/JS — or a na
 | Component       | Version    |
 | --------------- | ---------- |
 | WordPress       | 7.0+       |
-| PHP             | 8.5+       |
+| PHP             | 8.4+       |
 | Oxygen Builder  | 6.x        |
 | Capability      | `manage_options` (configurable) |
 

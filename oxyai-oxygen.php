@@ -2,13 +2,13 @@
 /**
  * Plugin Name: OxyAI Oxygen
  * Description: AI-assisted HTML, CSS, and JavaScript to native Oxygen 6 builder elements.
- * Version: 0.3.0
+ * Version: 0.3.1
  * Author: Denis Uhrík
  * License: GPL v3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: oxyai-oxygen
  * Requires at least: 7.0
- * Requires PHP: 8.5
+ * Requires PHP: 8.4
  */
 
 declare(strict_types=1);
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 $oxyaiOxygenExpectedConstants = [
-    'OXYAI_OXYGEN_VERSION' => '0.3.0',
+    'OXYAI_OXYGEN_VERSION' => '0.3.1',
     'OXYAI_OXYGEN_PATH' => plugin_dir_path(__FILE__),
     'OXYAI_OXYGEN_URL' => plugin_dir_url(__FILE__),
     'OXYAI_OXYGEN_OPTION' => 'oxyai_oxygen_settings',
@@ -85,9 +85,9 @@ spl_autoload_register(static function (string $class): void {
 });
 
 add_action('plugins_loaded', static function (): void {
-    if (version_compare(PHP_VERSION, '8.5.0', '<')) {
+    if (version_compare(PHP_VERSION, '8.4.0', '<')) {
         add_action('admin_notices', static function (): void {
-            echo '<div class="notice notice-error"><p>' . esc_html__('OxyAI Oxygen requires PHP 8.5 or newer.', 'oxyai-oxygen') . '</p></div>';
+            echo '<div class="notice notice-error"><p>' . esc_html__('OxyAI Oxygen requires PHP 8.4 or newer.', 'oxyai-oxygen') . '</p></div>';
         });
         return;
     }
