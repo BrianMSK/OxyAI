@@ -34,5 +34,12 @@ assert(count($formBuilder['elements']) === 1);
 assert($formBuilder['elements'][0]['type'] === ElementTypes::ESSENTIAL_FORM_BUILDER);
 assert(($formBuilder['elements'][0]['requiresBreakdanceFormsForOxygen'] ?? false) === true);
 assert(in_array('content.form.fields[].type', $formBuilder['elements'][0]['requiredContentPaths'], true));
+assert(in_array('content.actions.actions', $formBuilder['elements'][0]['requiredContentPaths'], true));
+
+$contracts = $all['breakdanceFormsForOxygen']['contractStatuses'] ?? [];
+assert(in_array('content.form.fields[].type', $contracts['formBuilder']['details']['requiredContentPaths'] ?? [], true));
+assert(in_array('content.form.fields[].label', $contracts['formBuilder']['details']['requiredContentPaths'] ?? [], true));
+assert(in_array('content.form.submit_text', $contracts['formBuilder']['details']['requiredContentPaths'] ?? [], true));
+assert(in_array('content.actions.actions', $contracts['formBuilder']['details']['requiredContentPaths'] ?? [], true));
 
 echo "element-capabilities-ok\n";
