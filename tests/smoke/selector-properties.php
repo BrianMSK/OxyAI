@@ -9,6 +9,12 @@ require_once __DIR__ . '/../../src/Oxygen/SelectorRegistrationService.php';
 if (!function_exists('get_option')) {
     function get_option(string $key, $default = [])
     {
+        global $oxyaiSelectorPropertiesOptions;
+
+        if (is_array($oxyaiSelectorPropertiesOptions) && array_key_exists($key, $oxyaiSelectorPropertiesOptions)) {
+            return $oxyaiSelectorPropertiesOptions[$key];
+        }
+
         return $default;
     }
 }
@@ -17,6 +23,24 @@ if (!function_exists('wp_unslash')) {
     function wp_unslash($value)
     {
         return $value;
+    }
+}
+
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($value)
+    {
+        return json_encode($value);
+    }
+}
+
+if (!function_exists('update_option')) {
+    function update_option(string $key, $value, bool $autoload = false): bool
+    {
+        global $oxyaiSelectorPropertiesOptions;
+
+        $oxyaiSelectorPropertiesOptions[$key] = $value;
+
+        return true;
     }
 }
 
@@ -101,7 +125,7 @@ $tree = [
                     'properties' => [
                         'settings' => [
                             'advanced' => [
-                                'classes' => ['first-card'],
+                                'classes' => ['first-card', 'missing-id-card'],
                             ],
                         ],
                     ],
@@ -136,10 +160,30 @@ $tree = [
     ],
 ];
 
+$oxyaiSelectorPropertiesOptions = [
+    'oxy_selectors_json_string' => [
+        [
+            'id' => 'legacy-hero-id',
+            'name' => '.breakdance .oxyai-test-hero',
+            'type' => 'custom',
+            'properties' => [],
+            'children' => [],
+            'collection' => 'OxyAI',
+        ],
+        [
+            'name' => '.missing-id-card',
+            'type' => 'class',
+            'properties' => [],
+            'children' => [],
+            'collection' => 'OxyAI',
+        ],
+    ],
+];
+
 $service = new SelectorRegistrationService();
 $result = $service->registerTreeSelectors($tree, false);
 
-assert($result['created'] === 3);
+assert($result['created'] === 2);
 assert($result['selectorPropertiesAttached'] === 1);
 assert($result['attachedElements'] === 3);
 assert($result['unmappedSelectorPropertyPaths'] === ['unsupported_bucket.example']);
@@ -149,9 +193,11 @@ foreach ($result['selectors'] as $registeredSelector) {
     $selectorsByName[$registeredSelector['name']] = $registeredSelector;
 }
 
-$selector = $selectorsByName['.breakdance .oxyai-test-hero'];
-assert($selector['type'] === 'custom');
-assert($selector['name'] === '.breakdance .oxyai-test-hero');
+$selector = $selectorsByName['oxyai-test-hero'];
+assert($selector['type'] === 'class');
+assert($selector['name'] === 'oxyai-test-hero');
+assert($selector['locked'] === false);
+assert($selector['id'] === 'legacy-hero-id');
 
 $props = $selector['properties']['breakpoint_base'] ?? [];
 assert(($props['spacing']['spacing']['padding']['editMode'] ?? null) === 'advanced');
@@ -166,11 +212,40 @@ assert(($props['layout']['flex_align']['primary_axis'] ?? null) === 'space-betwe
 assert(($props['typography']['color'] ?? null) === '#0f172a');
 assert(!isset($props['unsupported_bucket']));
 
-$firstCard = $selectorsByName['.breakdance .first-card'];
-assert(($firstCard['properties'] ?? []) === []);
+$firstCard = $selectorsByName['first-card'];
+assert($firstCard['locked'] === false);
+assert(($firstCard['properties'] ?? null) instanceof stdClass);
+assert(str_contains(json_encode($firstCard), '"properties":{}'));
 
 assert(!isset($tree['root']['data']['properties']['meta']['_oxyaiSelectorDesign']));
 assert(!isset($tree['root']['children'][1]['data']['properties']['meta']['_oxyaiSelectorDesign']));
 assert(in_array($selector['id'], $tree['root']['data']['properties']['meta']['classes'] ?? [], true));
+assert(($tree['root']['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
+assert(($tree['root']['children'][0]['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
+assert(($tree['root']['children'][1]['data']['properties']['settings']['advanced']['classes'] ?? null) === []);
+
+foreach ($result['selectors'] as $registeredSelector) {
+    assert(!str_starts_with((string) $registeredSelector['name'], '.breakdance'));
+}
+
+$missingIdCard = $selectorsByName['missing-id-card'];
+assert(isset($missingIdCard['id']) && is_string($missingIdCard['id']) && $missingIdCard['id'] !== '');
+assert(in_array($missingIdCard['id'], $tree['root']['children'][0]['data']['properties']['meta']['classes'] ?? [], true));
+
+$service->persistSelectors($result['selectors']);
+
+$persistedSelectors = json_decode((string) ($oxyaiSelectorPropertiesOptions['oxy_selectors_json_string'] ?? ''), true);
+assert(is_array($persistedSelectors));
+
+$persistedByName = [];
+foreach ($persistedSelectors as $persistedSelector) {
+    assert(is_array($persistedSelector));
+    $persistedByName[$persistedSelector['name'] ?? ''] = $persistedSelector;
+}
+
+assert(isset($persistedByName['missing-id-card']));
+assert(($persistedByName['missing-id-card']['id'] ?? '') === $missingIdCard['id']);
+assert(($persistedByName['missing-id-card']['type'] ?? '') === 'class');
+assert(!str_starts_with((string) ($persistedByName['missing-id-card']['name'] ?? ''), '.'));
 
 echo "selector-properties-ok\n";

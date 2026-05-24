@@ -229,7 +229,15 @@ class StyleExtractor
             return;
         }
 
-        if (in_array($cssProp, ['font-family', 'font-weight', 'font-style', 'text-align', 'text-decoration', 'text-transform'], true)) {
+        if ($cssProp === 'font-weight') {
+            $fontWeight = $this->normalizeFontWeight($value);
+            if ($fontWeight !== null) {
+                $this->setBreakpointValue($properties, ['typography', 'font_weight'], $fontWeight);
+            }
+            return;
+        }
+
+        if (in_array($cssProp, ['font-family', 'font-style', 'text-align', 'text-decoration', 'text-transform'], true)) {
             $this->setBreakpointValue($properties, ['typography', $this->oxygenKey($cssProp)], $value);
             return;
         }
@@ -596,6 +604,10 @@ class StyleExtractor
             return $this->parseRadiusShorthand($value) !== null;
         }
 
+        if ($cssProp === 'font-weight') {
+            return $this->normalizeFontWeight($value) !== null;
+        }
+
         return true;
     }
 
@@ -681,6 +693,33 @@ class StyleExtractor
         }
 
         return $value;
+    }
+
+    /**
+     * @return int|null
+     */
+    private function normalizeFontWeight(string $value): ?int
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $normalized = strtolower($trimmed);
+        $keywordWeights = [
+            'normal' => 400,
+            'bold' => 700,
+        ];
+
+        if (isset($keywordWeights[$normalized])) {
+            return $keywordWeights[$normalized];
+        }
+
+        if (preg_match('/^\d+$/', $trimmed)) {
+            return (int) $trimmed;
+        }
+
+        return null;
     }
 
     private function boxCategoryForElement(string $elementType): string

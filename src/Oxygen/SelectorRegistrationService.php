@@ -52,7 +52,7 @@ final class SelectorRegistrationService
                 $selectorPropertiesAttached++;
             }
 
-            $selectors[$className] = $selector;
+            $selectors[$className] = $this->normalizeSelectorShape($selector, $className);
         }
 
         if ($selectors === []) {
@@ -92,7 +92,7 @@ final class SelectorRegistrationService
             'registryOption' => self::SELECTORS_OPTION,
             'collectionsOption' => self::COLLECTIONS_OPTION,
             'collection' => self::COLLECTION_NAME,
-            'note' => 'Runtime classes remain in settings.advanced.classes; direct class styles are stored on matching Oxygen selector properties and selector IDs are attached in meta.classes for editor visibility.',
+            'note' => 'Runtime classes are promoted to Oxygen selector IDs in meta.classes; direct class styles are stored on matching selector properties for editor visibility and compiled selector CSS.',
         ];
     }
 
@@ -108,12 +108,14 @@ final class SelectorRegistrationService
         $existing = $this->readOxySelectors();
         $byId = [];
         foreach ($existing as $selector) {
+            $selector = $this->normalizeSelectorShape($selector);
             if (isset($selector['id']) && is_string($selector['id']) && $selector['id'] !== '') {
                 $byId[$selector['id']] = $selector;
             }
         }
 
         foreach ($selectors as $selector) {
+            $selector = $this->normalizeSelectorShape($selector);
             if (!isset($selector['id']) || !is_string($selector['id']) || $selector['id'] === '') {
                 continue;
             }
@@ -121,7 +123,10 @@ final class SelectorRegistrationService
             $byId[$selector['id']] = array_merge($byId[$selector['id']] ?? [], $selector);
         }
 
-        $allSelectors = array_values($byId);
+        $allSelectors = array_values(array_map(
+            fn (array $selector): array => $this->normalizeSelectorShape($selector),
+            $byId
+        ));
         $collections = $this->readOxySelectorCollections();
         if (!in_array(self::COLLECTION_NAME, $collections, true)) {
             $collections[] = self::COLLECTION_NAME;
@@ -234,6 +239,7 @@ final class SelectorRegistrationService
         }
 
         $selectorIds = [];
+        $promotedClasses = [];
         foreach ($nodeClasses as $className) {
             if (!is_string($className)) {
                 continue;
@@ -242,6 +248,7 @@ final class SelectorRegistrationService
             $normalized = $this->normalizeClassName($className);
             if ($normalized !== null && isset($selectors[$normalized]['id'])) {
                 $selectorIds[] = (string) $selectors[$normalized]['id'];
+                $promotedClasses[$normalized] = true;
             }
         }
 
@@ -255,6 +262,7 @@ final class SelectorRegistrationService
         $merged = array_values(array_unique(array_merge($existing, $selectorIds)));
         $node['data']['properties']['meta']['classes'] = $merged;
         $node['data']['properties']['meta']['classes_conditions'] = $node['data']['properties']['meta']['classes_conditions'] ?? [];
+        $this->removePromotedRuntimeClasses($node, $promotedClasses);
         $attachedElements++;
     }
 
@@ -287,12 +295,44 @@ final class SelectorRegistrationService
     {
         return [
             'id' => $this->uuidForClassName($className),
-            'name' => '.breakdance .' . $className,
-            'type' => 'custom',
-            'properties' => [],
+            'name' => $className,
+            'type' => 'class',
+            'properties' => new \stdClass(),
             'children' => [],
             'collection' => self::COLLECTION_NAME,
+            'locked' => false,
         ];
+    }
+
+    /**
+     * Oxygen's frontend selector validator requires properties to be an
+     * object-map and locked to be present. Empty PHP arrays encode as JSON
+     * arrays, so use stdClass for the empty object case.
+     *
+     * @param array<string, mixed> $selector
+     * @return array<string, mixed>
+     */
+    private function normalizeSelectorShape(array $selector, ?string $className = null): array
+    {
+        $isOxyAiSelector = ($selector['collection'] ?? null) === self::COLLECTION_NAME;
+        $className = $className ?? ($isOxyAiSelector ? $this->classNameFromSelector($selector) : null);
+        if ($className !== null) {
+            $selector['type'] = 'class';
+            $selector['name'] = $className;
+            if (!isset($selector['id']) || !is_string($selector['id']) || $selector['id'] === '') {
+                $selector['id'] = $this->uuidForClassName($className);
+            }
+        }
+
+        if (!array_key_exists('locked', $selector)) {
+            $selector['locked'] = false;
+        }
+
+        if (!isset($selector['properties']) || $selector['properties'] === []) {
+            $selector['properties'] = new \stdClass();
+        }
+
+        return $selector;
     }
 
     /**
@@ -318,6 +358,35 @@ final class SelectorRegistrationService
         }
 
         return null;
+    }
+
+    /**
+     * @param array<string, mixed> $node
+     * @param array<string, true> $promotedClasses
+     */
+    private function removePromotedRuntimeClasses(array &$node, array $promotedClasses): void
+    {
+        $nodeClasses = $node['data']['properties']['settings']['advanced']['classes'] ?? [];
+        if (!is_array($nodeClasses) || $nodeClasses === []) {
+            return;
+        }
+
+        $remainingClasses = [];
+        foreach ($nodeClasses as $className) {
+            if (!is_string($className)) {
+                $remainingClasses[] = $className;
+                continue;
+            }
+
+            $normalized = $this->normalizeClassName($className);
+            if ($normalized !== null && isset($promotedClasses[$normalized])) {
+                continue;
+            }
+
+            $remainingClasses[] = $className;
+        }
+
+        $node['data']['properties']['settings']['advanced']['classes'] = array_values($remainingClasses);
     }
 
     /**
