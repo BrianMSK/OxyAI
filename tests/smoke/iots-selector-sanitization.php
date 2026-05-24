@@ -100,6 +100,7 @@ $oxyaiIoTsSanitizationOptions = [
             'properties' => [
                 'breakpoint_base' => [
                     'typography' => [
+                        'font_size' => 'clamp(34px, 4vw, 54px)',
                         'line_height' => '1.75',
                         'letter_spacing' => 'var(--track)',
                         'color' => '#333333',
@@ -131,7 +132,7 @@ assert($result['selectorsScanned'] === 3);
 assert($result['selectorsChanged'] === 3);
 assert($result['sizeStringsRemoved'] === 2);   // width(min), width(fit-content)
 assert($result['effectStringsRemoved'] === 2); // transition, transform
-assert($result['typographyStringsRemoved'] === 2); // line_height, letter_spacing
+assert($result['typographyStringsRemoved'] === 3); // font_size, line_height, letter_spacing
 
 $repaired = $readPersisted();
 assert(is_array($repaired));
@@ -154,9 +155,39 @@ assert($button['properties']['breakpoint_base']['background']['background_color'
 
 // Text: typography strings removed, color preserved.
 $text = $byName['mk-section-text'];
+assert(!isset($text['properties']['breakpoint_base']['typography']['font_size']));
 assert(!isset($text['properties']['breakpoint_base']['typography']['line_height']));
 assert(!isset($text['properties']['breakpoint_base']['typography']['letter_spacing']));
 assert($text['properties']['breakpoint_base']['typography']['color'] === '#333333');
+
+// Empty branches left behind after pruning must be removed too; IO-TS treats
+// missing keys as valid, and pruning keeps the registry compact.
+$oxyaiIoTsSanitizationOptions = [
+    'oxy_selectors_json_string' => [
+        [
+            'id' => 'empty-branch-id',
+            'name' => 'mk-empty-branch',
+            'type' => 'class',
+            'properties' => [
+                'breakpoint_base' => [
+                    'typography' => [
+                        'font_size' => 'clamp(34px, 4vw, 54px)',
+                    ],
+                ],
+            ],
+            'children' => [],
+            'collection' => 'OxyAI',
+            'locked' => false,
+        ],
+    ],
+];
+
+$emptyResult = $service->repairPersistedSelectors();
+assert($emptyResult['typographyStringsRemoved'] === 1);
+assert(is_string($oxyaiIoTsSanitizationOptions['oxy_selectors_json_string']));
+assert(str_contains($oxyaiIoTsSanitizationOptions['oxy_selectors_json_string'], '"properties":{}'));
+$emptyRepaired = $readPersisted();
+assert(!isset($emptyRepaired[0]['properties']['breakpoint_base']));
 
 // Whitelisted size keywords (`auto`) survive — they're a legal schema variant
 // for size.width so removing them would lose user intent.

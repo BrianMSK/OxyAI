@@ -189,6 +189,9 @@ final class SelectorRegistrationService
             if (isset($selector['properties']) && is_array($selector['properties'])) {
                 $this->normalizeSelectorPropertyValues($selector['properties'], $fontWeightsRepaired);
                 $this->sanitizePropertiesForIoTs($selector['properties'], $ioTsSanitization);
+                if ($selector['properties'] === []) {
+                    $selector['properties'] = new \stdClass();
+                }
             }
 
             if (!$hadLocked && array_key_exists('locked', $selector)) {
@@ -468,7 +471,7 @@ final class SelectorRegistrationService
         static $sizeKeys = ['width', 'min_width', 'max_width', 'height', 'min_height', 'max_height'];
         static $sizeKeywords = ['auto', 'fit', 'none', 'inherit', 'initial', 'unset'];
         static $effectsKeys = ['transition', 'transform', 'box_shadow', 'filter', 'backdrop_filter'];
-        static $typographyKeys = ['line_height', 'letter_spacing'];
+        static $typographyKeys = ['font_size', 'line_height', 'letter_spacing'];
         static $typographyKeywords = ['normal', 'inherit'];
 
         foreach (array_keys($properties) as $key) {
@@ -500,6 +503,9 @@ final class SelectorRegistrationService
 
             if (is_array($value)) {
                 $this->sanitizePropertiesForIoTs($properties[$key], $counters);
+                if ($properties[$key] === []) {
+                    unset($properties[$key]);
+                }
             }
         }
     }

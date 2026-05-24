@@ -691,6 +691,7 @@ class StyleExtractor
             'gap',
             'row-gap',
             'column-gap',
+            'flex-basis',
             'top',
             'right',
             'bottom',
