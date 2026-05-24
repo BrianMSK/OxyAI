@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+use OxyAI\Oxygen\Codex\OxygenElementCapabilityService;
+use OxyHtmlConverter\ElementTypes;
+
+require_once __DIR__ . '/../../vendor/oxygen-html-converter/src/ElementTypes.php';
+require_once __DIR__ . '/../../vendor/oxygen-html-converter/src/Services/BuilderContractService.php';
+require_once __DIR__ . '/../../vendor/oxygen-html-converter/src/Services/BuilderElementCatalogService.php';
+require_once __DIR__ . '/../../vendor/oxygen-html-converter/src/Services/EnvironmentService.php';
+require_once __DIR__ . '/../../src/Codex/OxygenElementCapabilityService.php';
+
+$service = new OxygenElementCapabilityService();
+$all = $service->all();
+
+assert(isset($all['breakdanceFormsForOxygen']));
+assert(array_key_exists('safeHandAuthoredTargets', $all['breakdanceFormsForOxygen']));
+assert(isset($all['breakdanceFormsForOxygen']['safeHandAuthoredTargets'][ElementTypes::ESSENTIAL_FORM_BUILDER]));
+assert(isset($all['selectorCompilerSupport']['knownNativeSelectorGaps']));
+assert(in_array(
+    'Use percentage widths or keep a CSS fallback for layouts that require wrapping, CSS grid, media queries, or flex item growth/shrink behavior.',
+    $all['selectorCompilerSupport']['knownNativeSelectorGaps'],
+    true
+));
+
+$formBuilder = $service->all(ElementTypes::ESSENTIAL_FORM_BUILDER);
+assert(count($formBuilder['elements']) === 1);
+assert($formBuilder['elements'][0]['type'] === ElementTypes::ESSENTIAL_FORM_BUILDER);
+assert(($formBuilder['elements'][0]['requiresBreakdanceFormsForOxygen'] ?? false) === true);
+assert(in_array('content.form.fields[].type', $formBuilder['elements'][0]['requiredContentPaths'], true));
+
+echo "element-capabilities-ok\n";
