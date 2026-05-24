@@ -325,7 +325,7 @@ class InteractionDetector
         }
 
         if (in_array($name, ['target', 'formtarget'], true)) {
-            return in_array($value, ['_self', '_blank', '_parent', '_top'], true) ? $value : null;
+            return $this->sanitizeBrowsingContext($value);
         }
 
         if ($name === 'formmethod') {
@@ -355,12 +355,44 @@ class InteractionDetector
         return (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/', '', $value);
     }
 
+    private function sanitizeBrowsingContext(string $value): ?string
+    {
+        if ($value === '') {
+            return null;
+        }
+
+        $lower = strtolower($value);
+        if (in_array($lower, ['_self', '_blank', '_parent', '_top'], true)) {
+            return $lower;
+        }
+
+        // Any other `_`-prefixed token is reserved by HTML and must be rejected.
+        if (strncmp($value, '_', 1) === 0) {
+            return null;
+        }
+
+        // A browsing-context name is a single token: reject whitespace and controls.
+        if (preg_match('/[\x00-\x20\x7F]/', $value)) {
+            return null;
+        }
+
+        return $value;
+    }
+
     /**
      * @param array<int, string> $allowedSchemes
      */
     private function sanitizeUrl(string $url, array $allowedSchemes): string
     {
         $url = trim($url);
+        if ($url === '') {
+            return '';
+        }
+
+        // Browsers strip ASCII tab/LF/CR before URL parsing, so payloads like
+        // "java\nscript:alert(1)" would otherwise bypass the scheme allowlist
+        // and execute at runtime. Drop all C0 controls and DEL up front.
+        $url = (string) preg_replace('/[\x00-\x1F\x7F]+/', '', $url);
         if ($url === '') {
             return '';
         }
@@ -383,9 +415,7 @@ class InteractionDetector
             return is_string($sanitized) && $sanitized !== '' ? $sanitized : '#';
         }
 
-        $safeUrl = preg_replace('/[\r\n]+/', '', $url);
-
-        return is_string($safeUrl) ? $safeUrl : '#';
+        return $url;
     }
 
     // ─── JavaScript pattern detection ────────────────────────────────

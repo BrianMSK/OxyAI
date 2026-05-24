@@ -169,7 +169,7 @@ class ClassStrategyService
             return null;
         }
 
-        $className = (string) preg_replace('/[\x00-\x20"\'<>`=]+/', '', $className);
+        $className = (string) preg_replace('/[\x00-\x20"\'<>`]+/', '', $className);
 
         return $className !== '' ? $className : null;
     }
