@@ -203,6 +203,10 @@ $oxyaiIoTsSanitizationOptions = [
                         'width' => 'auto',
                         'height' => 'inherit',
                     ],
+                    'typography' => [
+                        'line_height' => 'initial',
+                        'letter_spacing' => 'unset',
+                    ],
                 ],
             ],
             'children' => [],
@@ -217,6 +221,8 @@ assert($keepResult['sizeStringsRemoved'] === 0);
 $keepRepaired = $readPersisted();
 assert($keepRepaired[0]['properties']['breakpoint_base']['size']['width'] === 'auto');
 assert($keepRepaired[0]['properties']['breakpoint_base']['size']['height'] === 'inherit');
+assert($keepRepaired[0]['properties']['breakpoint_base']['typography']['line_height'] === 'initial');
+assert($keepRepaired[0]['properties']['breakpoint_base']['typography']['letter_spacing'] === 'unset');
 
 // Idempotent: re-running repair on already-clean data is a no-op.
 $secondPass = $service->repairPersistedSelectors();

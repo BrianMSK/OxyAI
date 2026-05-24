@@ -374,6 +374,7 @@ class StyleExtractor
 
             $normalized = $this->normalizeLength((string) $sides[$side]);
             if ($normalized === null) {
+                unset($spacing[$side]);
                 continue;
             }
             $spacing[$side] = $normalized;
@@ -418,6 +419,7 @@ class StyleExtractor
         foreach ($corners as $corner => $value) {
             $normalized = $this->normalizeLength($value);
             if ($normalized === null) {
+                unset($radius[$corner]);
                 continue;
             }
             $radius[$corner] = $normalized;
