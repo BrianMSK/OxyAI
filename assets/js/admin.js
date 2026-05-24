@@ -304,19 +304,17 @@
     return "oxyai_" + Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
   }
 
-  function syncCodexUrl() {
-    const token = $("oxyai-mcp-token")?.value || "";
+  function syncCodexEndpoint() {
     const target = $("oxyai-codex-url");
     if (!target) return;
     const base = target.getAttribute("data-base-url") || "";
-    target.textContent = base + (base.includes("?") ? "&" : "?") + "oxyai_token=" + encodeURIComponent(token);
+    target.textContent = base;
   }
 
   function regenerateToken() {
     const token = $("oxyai-mcp-token");
     if (!token) return;
     token.value = randomToken();
-    syncCodexUrl();
     setStatus("New MCP token generated — save setup to keep it.", "success");
   }
 
@@ -324,7 +322,7 @@
     const value = $("oxyai-codex-url")?.textContent || "";
     if (!value) return;
     await navigator.clipboard.writeText(value);
-    setStatus("Codex URL copied.", "success");
+    setStatus("MCP endpoint copied. Configure the token as x-oxyai-token or Authorization: Bearer.", "success");
   }
 
   // ===== ACTIONS =====
@@ -537,7 +535,6 @@
 
     // Setup modal
     $("oxyai-provider-select")?.addEventListener("change", syncProviderFields);
-    $("oxyai-mcp-token")?.addEventListener("input", syncCodexUrl);
     $$("[data-ox-open-setup]").forEach((button) => {
       button.addEventListener("click", openSetup);
     });
@@ -578,7 +575,7 @@
     setMode("generate");
     setOperation("append");
     syncProviderFields();
-    syncCodexUrl();
+    syncCodexEndpoint();
     renderAudit({});
   });
 })();

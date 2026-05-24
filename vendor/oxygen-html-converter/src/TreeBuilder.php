@@ -607,7 +607,7 @@ class TreeBuilder
 
         // Detect and apply native entrance animations
         $classAttr = $node->getAttribute('class');
-        $classNames = $classAttr ? array_filter(array_map('trim', explode(' ', $classAttr))) : [];
+        $classNames = $classAttr ? array_filter(array_map('trim', preg_split('/\s+/', $classAttr) ?: [])) : [];
         $animationSettings = $this->animationDetector->detectAnimations($node, $classNames, $this->cssRules);
         if ($animationSettings) {
             $element['data']['properties']['settings'] = $element['data']['properties']['settings'] ?? [];
@@ -1173,7 +1173,7 @@ class TreeBuilder
             return;
         }
 
-        $classNames = array_filter(array_map('trim', explode(' ', $classAttr)));
+        $classNames = array_filter(array_map('trim', preg_split('/\s+/', $classAttr) ?: []));
 
         if (empty($classNames)) {
             return;
@@ -1200,7 +1200,7 @@ class TreeBuilder
      */
     private function processId(DOMElement $node, array &$element): void
     {
-        $id = $node->getAttribute('id');
+        $id = $this->sanitizeHtmlId($node->getAttribute('id'));
         if (!$id) {
             return;
         }
@@ -1209,6 +1209,26 @@ class TreeBuilder
         $element['data']['properties']['settings'] = $element['data']['properties']['settings'] ?? [];
         $element['data']['properties']['settings']['advanced'] = $element['data']['properties']['settings']['advanced'] ?? [];
         $element['data']['properties']['settings']['advanced']['id'] = $id;
+    }
+
+    private function sanitizeHtmlId(string $id): string
+    {
+        $id = trim($id);
+        if ($id === '') {
+            return '';
+        }
+
+        // Drop the id entirely if it contains chars that would break the rendered
+        // attribute or selector usage. Rewriting to a safe variant would silently
+        // desynchronise `<a href="#foo=bar">` style fragment links and JS
+        // `document.getElementById('foo=bar')` references from the element they
+        // were meant to target. Valid ids (including `=`, `:`, `[`, ...) pass
+        // through unchanged.
+        if (preg_match('/[\x00-\x20"\'<>`]/', $id)) {
+            return '';
+        }
+
+        return $id;
     }
 
     /**

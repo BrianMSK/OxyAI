@@ -44,7 +44,7 @@ final class AdminPage
         $presets = $this->presets->all();
         $inspirations = $this->inspirations->all();
         $mcpUrl = rest_url('oxyai/v1/mcp');
-        $codexUrl = add_query_arg('oxyai_token', (string) $settings['mcp_token'], $mcpUrl);
+        $codexUrl = $mcpUrl;
         $optionName = OXYAI_OXYGEN_OPTION;
         ?>
         <div class="wrap ox-app">
@@ -364,7 +364,7 @@ final class AdminPage
                                 <?php echo esc_html__('Codex / MCP', 'oxyai-oxygen'); ?>
                                 <small><?php echo esc_html__('Remote tooling', 'oxyai-oxygen'); ?></small>
                             </h3>
-                            <p class="ox-modal__hint"><?php echo esc_html__('Give this URL to Codex (or any MCP client). Regenerate only if you want to revoke old access.', 'oxyai-oxygen'); ?></p>
+                            <p class="ox-modal__hint"><?php echo esc_html__('Give this endpoint and token to Codex or any MCP client. Use the token as an x-oxyai-token header or Authorization: Bearer value; do not place it in the URL.', 'oxyai-oxygen'); ?></p>
 
                             <label class="ox-field">
                                 <span class="ox-field__label"><?php echo esc_html__('MCP token', 'oxyai-oxygen'); ?></span>
@@ -375,11 +375,12 @@ final class AdminPage
                             </label>
 
                             <label class="ox-field">
-                                <span class="ox-field__label"><?php echo esc_html__('Codex URL', 'oxyai-oxygen'); ?></span>
+                                <span class="ox-field__label"><?php echo esc_html__('MCP endpoint', 'oxyai-oxygen'); ?></span>
                                 <code class="ox-endpoint" id="oxyai-codex-url" data-base-url="<?php echo esc_attr($mcpUrl); ?>"><?php echo esc_html($codexUrl); ?></code>
                                 <div style="display:flex;justify-content:flex-end;margin-top:6px;">
-                                    <button type="button" class="ox-btn ox-btn--ghost" id="oxyai-copy-codex-url"><?php echo esc_html__('Copy URL', 'oxyai-oxygen'); ?></button>
+                                    <button type="button" class="ox-btn ox-btn--ghost" id="oxyai-copy-codex-url"><?php echo esc_html__('Copy endpoint', 'oxyai-oxygen'); ?></button>
                                 </div>
+                                <p class="ox-field__hint"><?php echo esc_html__('Legacy query-string tokens are disabled by default because URLs are commonly stored in logs and browser history. Site code can opt into them with the oxyai_oxygen_allow_mcp_query_token filter if a client cannot send headers.', 'oxyai-oxygen'); ?></p>
                             </label>
                         </section>
 

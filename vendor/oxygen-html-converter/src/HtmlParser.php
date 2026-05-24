@@ -31,7 +31,7 @@ class HtmlParser
         // Wrap in UTF-8 meta and basic structure if needed
         $html = $this->prepareHtml($html);
 
-        $success = $this->dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING);
+        $success = $this->dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET);
 
         // Collect errors
         $this->errors = array_map(function ($error) {

@@ -167,6 +167,11 @@ class InteractionDetector
             }
 
             if ($shouldPreserve) {
+                $value = $this->sanitizePreservedAttribute($name, $value);
+                if ($value === null) {
+                    continue;
+                }
+
                 $attributes[] = [
                     'name' => $name,
                     'value' => $value,
@@ -304,6 +309,115 @@ class InteractionDetector
             'name' => $attrName,
             'value' => $handlerCode,
         ];
+    }
+
+    private function sanitizePreservedAttribute(string $name, string $value): ?string
+    {
+        $name = strtolower($name);
+
+        if ($name === 'ping') {
+            return null;
+        }
+
+        if ($name === 'formaction') {
+            return $this->sanitizeUrl(trim($value), ['http', 'https']);
+        }
+
+        if (in_array($name, ['target', 'formtarget'], true)) {
+            return $this->sanitizeBrowsingContext(trim($value));
+        }
+
+        if ($name === 'formmethod') {
+            $method = strtolower(trim($value));
+            return in_array($method, ['get', 'post', 'dialog'], true) ? $method : null;
+        }
+
+        if ($name === 'formenctype') {
+            $type = strtolower(trim($value));
+            return in_array($type, ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain'], true) ? $type : null;
+        }
+
+        if ($name === 'referrerpolicy') {
+            $policy = strtolower(trim($value));
+            return in_array($policy, [
+                'no-referrer',
+                'no-referrer-when-downgrade',
+                'origin',
+                'origin-when-cross-origin',
+                'same-origin',
+                'strict-origin',
+                'strict-origin-when-cross-origin',
+                'unsafe-url',
+            ], true) ? $policy : null;
+        }
+
+        // Generic preserved attributes (data-*, aria-*, value, placeholder, ...):
+        // strip C0 controls + DEL but keep boundary whitespace intact so user-facing
+        // defaults like `value="  hello  "` survive conversion.
+        return (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/', '', $value);
+    }
+
+    private function sanitizeBrowsingContext(string $value): ?string
+    {
+        if ($value === '') {
+            return null;
+        }
+
+        $lower = strtolower($value);
+        if (in_array($lower, ['_self', '_blank', '_parent', '_top'], true)) {
+            return $lower;
+        }
+
+        // Any other `_`-prefixed token is reserved by HTML and must be rejected.
+        if (strncmp($value, '_', 1) === 0) {
+            return null;
+        }
+
+        // A browsing-context name is a single token: reject whitespace and controls.
+        if (preg_match('/[\x00-\x20\x7F]/', $value)) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<int, string> $allowedSchemes
+     */
+    private function sanitizeUrl(string $url, array $allowedSchemes): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return '';
+        }
+
+        // Browsers strip ASCII tab/LF/CR before URL parsing, so payloads like
+        // "java\nscript:alert(1)" would otherwise bypass the scheme allowlist
+        // and execute at runtime. Drop all C0 controls and DEL up front.
+        $url = (string) preg_replace('/[\x00-\x1F\x7F]+/', '', $url);
+        if ($url === '') {
+            return '';
+        }
+
+        if (preg_match('/^(#|\/|\.\.?\/|\?)/', $url)) {
+            return $url;
+        }
+
+        if (!preg_match('/^([a-zA-Z][a-zA-Z0-9+.-]*):/', $url, $matches)) {
+            return $url;
+        }
+
+        $scheme = strtolower($matches[1]);
+        if (!in_array($scheme, $allowedSchemes, true)) {
+            return '#';
+        }
+
+        if (($scheme === 'http' || $scheme === 'https') && function_exists('esc_url_raw')) {
+            $sanitized = esc_url_raw($url);
+            return is_string($sanitized) && $sanitized !== '' ? $sanitized : '#';
+        }
+
+        return $url;
     }
 
     // ─── JavaScript pattern detection ────────────────────────────────
