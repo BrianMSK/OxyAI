@@ -472,7 +472,7 @@ final class SelectorRegistrationService
         static $sizeKeywords = ['auto', 'fit', 'none', 'inherit', 'initial', 'unset'];
         static $effectsKeys = ['transition', 'transform', 'box_shadow', 'filter', 'backdrop_filter'];
         static $typographyKeys = ['font_size', 'line_height', 'letter_spacing'];
-        static $typographyKeywords = ['normal', 'inherit'];
+        static $typographyKeywords = ['normal', 'inherit', 'initial', 'unset'];
 
         foreach (array_keys($properties) as $key) {
             $value = $properties[$key];

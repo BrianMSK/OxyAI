@@ -77,6 +77,17 @@ assert(($paddingBox['bottom']['style'] ?? null) === '24px');
 assert(($paddingBox['left']['style'] ?? null) === '12px');
 assert($extractor->supportsDeclarationsFully(['padding' => 'calc(2vw + 4px) 16px 24px 12px']) === false);
 
+// Later unsupported shorthand sides must clear earlier native values for those
+// sides, otherwise stale native props can override the preserved CSS fallback.
+$paddingOverride = $extractor->toOxygenProperties([
+    'padding-top' => '40px',
+    'padding' => 'calc(2vw + 4px) 16px 24px 12px',
+]);
+$paddingOverrideBox = $paddingOverride['container']['padding']['breakpoint_base'] ?? null;
+assert(is_array($paddingOverrideBox));
+assert(!isset($paddingOverrideBox['top']));
+assert(($paddingOverrideBox['right']['style'] ?? null) === '16px');
+
 // Border-radius with calc on one corner: bad corner skipped, good corners stored.
 $radius = $extractor->toOxygenProperties([
     'border-radius' => 'calc(50% - 2px) 8px 8px 8px',
@@ -88,6 +99,15 @@ assert(($radiusBox['topRight']['style'] ?? null) === '8px');
 assert(($radiusBox['bottomRight']['style'] ?? null) === '8px');
 assert(($radiusBox['bottomLeft']['style'] ?? null) === '8px');
 assert($extractor->supportsDeclarationsFully(['border-radius' => 'calc(50% - 2px) 8px 8px 8px']) === false);
+
+$radiusOverride = $extractor->toOxygenProperties([
+    'border-top-left-radius' => '24px',
+    'border-radius' => 'calc(50% - 2px) 8px 8px 8px',
+]);
+$radiusOverrideBox = $radiusOverride['container']['borders']['radius']['breakpoint_base'] ?? null;
+assert(is_array($radiusOverrideBox));
+assert(!isset($radiusOverrideBox['topLeft']));
+assert(($radiusOverrideBox['topRight']['style'] ?? null) === '8px');
 
 // Effect shorthands are schema-strict in Oxygen. Until they have structured
 // parsers, they must stay in CSS fallback and be omitted from native props.
