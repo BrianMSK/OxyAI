@@ -84,6 +84,32 @@ final class OxygenElementCapabilityService
                 'Direct single-class @media (max-width) rules can map to Oxygen breakpoint selector properties when every declaration is supported. Keep other media queries in CssCode.',
                 'Do not strip CssCode fallback unless conversion audit proves every declaration in the selector was consumed natively.',
             ],
+            'cssMappingCoveragePolicy' => [
+                'sourceOfTruth' => 'config/css-mapping/breakdance-coverage-manifest.json plus live list_oxygen_element_capabilities output for the current site.',
+                'coverageHarness' => [
+                    'inventory' => 'tools/css-mapping/extract-breakdance-contracts.php reads Breakdance Elements/Forms element.php, css.twig, html.twig, and default.css without booting WordPress.',
+                    'oxygenInventory' => 'tools/css-mapping/extract-oxygen-core-contracts.php reads Oxygen 6 core element sources and universal spacing controls.',
+                    'manifestValidation' => 'tools/css-mapping/validate-breakdance-coverage.php verifies every css.twig/universal design path has an explicit manifest rule and no stripSafe rule lacks proof metadata.',
+                    'realSourceSmoke' => 'tests/smoke/real-source-css-coverage.php asserts the current downloaded Oxygen, Breakdance Elements, and Breakdance Forms sources have zero uncovered paths, zero needs-element-specific-mapper paths, and zero unknown CSS properties/macros when those sources are present.',
+                    'realSourceReviewGate' => 'tools/css-mapping/real-source-coverage-gate.php prints the reviewer-facing PASS/FAIL table for Oxygen core plus Breakdance Elements/Forms together.',
+                ],
+                'statuses' => [
+                    'native-shared-mapper' => 'Shared mapper can represent the property family, but CSS fallback stays unless compile proof exists for the exact element/property pair.',
+                    'native-with-guardrails' => 'Native mapping is allowed only with documented element-specific guardrails.',
+                    'element-specific-contract' => 'A reviewed element-specific mapper/fallback contract exists for this element and path family; CSS fallback remains unless stripSafe proof is attached.',
+                    'content-or-render-runtime' => 'Path affects content/runtime rendering rather than a direct CSS declaration mapping.',
+                    'requires-css-fallback' => 'Keep CssCode unless a dedicated mapper and compile proof are added.',
+                    'needs-element-specific-mapper' => 'Known source path without a reviewed contract; the real-source gate must fail until this is eliminated.',
+                    'uncovered' => 'No manifest rule exists yet; do not hand-author as native-only.',
+                ],
+                'stripSafeRequires' => [
+                    'explicit manifest rule',
+                    'documented CSS declaration to design/content path mapping',
+                    'JSON-shape smoke test',
+                    'compiled CSS or rendered page proof',
+                    'conversion audit without retained/dead-write declarations',
+                ],
+            ],
             'selectorCompilerSupport' => [
                 'nativeResponsiveMapping' => [
                     '@media (max-width:1119px)' => 'breakpoint_tablet_landscape',
@@ -104,6 +130,11 @@ final class OxygenElementCapabilityService
                     'padding/margin side values',
                     'border-radius',
                     'typography color/size/weight/line-height/letter-spacing/text-transform/text-align',
+                ],
+                'selectorPropertyNormalizer' => [
+                    'Selector registration remaps converter/Breakdance schema paths before persisting oxy_selectors_json_string.',
+                    'Known remaps include layout.align_items -> layout.flex_align.cross_axis, layout.justify_content -> layout.flex_align.primary_axis, layout.gap -> layout.gap.row/column, spacing.padding/margin -> spacing.spacing.*, background.color -> background.background_color, borders.border -> borders.borders, and borders.radius -> borders.border_radius.',
+                    'Known value normalizers include quoted font-family cleanup, opacity 0..1 -> 0..100, %%SELECTOR%% custom CSS token rewrite, and flex_wrap merge into flex_direction.',
                 ],
                 'knownNativeSelectorGaps' => [
                     'grid-template-columns and grid-template-rows are captured in design data but not emitted by the Oxygen selector compiler on the verified Oxygen 6 site.',

@@ -14,7 +14,10 @@ class ConversionAuditBuilder
     public function build(array $result, array $options): array
     {
         $stats = is_array($result['stats'] ?? null) ? $result['stats'] : [];
-        $warnings = $this->normalizeMessages($stats['warnings'] ?? []);
+        $warnings = array_values(array_unique(array_merge(
+            $this->normalizeMessages($stats['warnings'] ?? []),
+            $this->detectBreakdanceDeadWriteWarnings($result['element'] ?? null)
+        )));
         $errors = $this->normalizeMessages($stats['errors'] ?? []);
         $info = $this->normalizeMessages($stats['info'] ?? []);
         $validationErrors = $this->normalizeMessages($result['validationErrors'] ?? []);
@@ -124,5 +127,99 @@ class ConversionAuditBuilder
         }
 
         return array_values(array_unique($normalized));
+    }
+
+    /**
+     * @param mixed $node
+     * @return array<int, string>
+     */
+    private function detectBreakdanceDeadWriteWarnings($node): array
+    {
+        if (!is_array($node)) {
+            return [];
+        }
+
+        $warnings = [];
+        $this->collectBreakdanceDeadWriteWarnings($node, $warnings);
+
+        return array_values(array_unique($warnings));
+    }
+
+    /**
+     * @param array<string, mixed> $node
+     * @param array<int, string> $warnings
+     */
+    private function collectBreakdanceDeadWriteWarnings(array $node, array &$warnings): void
+    {
+        $type = (string) ($node['data']['type'] ?? '');
+        $design = $node['data']['properties']['design'] ?? [];
+        $design = is_array($design) ? $design : [];
+
+        if (
+            in_array($type, ['EssentialElements\\Columns', 'EssentialElements\\Column'], true)
+            && $this->hasHorizontalAutoMargin($design)
+        ) {
+            $warnings[] = 'Breakdance dead write: container.margin left/right "auto" on EssentialElements\\Columns/Column persists in JSON but does not compile. Use an OxygenElements\\Container wrapper or center the parent Column with the full alignment bundle.';
+        }
+
+        if ($type === 'EssentialElements\\Columns' && $this->pathExists($design, ['layout', 'justify_content'])) {
+            $warnings[] = 'Breakdance dead write: layout.justify_content on EssentialElements\\Columns persists in JSON but does not compile. Use an OxygenElements\\Container outer wrapper or move alignment to the child Column.';
+        }
+
+        if (
+            $type === 'EssentialElements\\Column'
+            && $this->pathExists($design, ['layout', 'align_items'])
+            && (!$this->pathExists($design, ['layout', 'align']) || !$this->pathExists($design, ['layout', 'vertical_align']))
+        ) {
+            $warnings[] = 'Breakdance partial alignment: EssentialElements\\Column only compiles alignment reliably when align_items, align, and vertical_align are written together.';
+        }
+
+        foreach (($node['children'] ?? []) as $child) {
+            if (is_array($child)) {
+                $this->collectBreakdanceDeadWriteWarnings($child, $warnings);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $design
+     */
+    private function hasHorizontalAutoMargin(array $design): bool
+    {
+        $margin = $design['container']['margin'] ?? null;
+        if (!is_array($margin)) {
+            return false;
+        }
+
+        foreach ($margin as $breakpointValue) {
+            if (!is_array($breakpointValue)) {
+                continue;
+            }
+
+            foreach (['left', 'right'] as $side) {
+                if (isset($breakpointValue[$side]) && strtolower(trim((string) $breakpointValue[$side])) === 'auto') {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<string, mixed> $array
+     * @param array<int, string> $path
+     */
+    private function pathExists(array $array, array $path): bool
+    {
+        $current = $array;
+        foreach ($path as $key) {
+            if (!is_array($current) || !array_key_exists($key, $current)) {
+                return false;
+            }
+            $current = $current[$key];
+        }
+
+        return true;
     }
 }

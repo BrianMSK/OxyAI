@@ -1,0 +1,2178 @@
+{
+  "version": 1,
+  "scope": "Breakdance Elements for Oxygen + Breakdance Forms for Oxygen css.twig design paths",
+  "statuses": {
+    "native-shared-mapper": "A shared mapper can represent this property family, but CSS fallback is not strip-safe until the element/property pair has compile proof.",
+    "native-with-guardrails": "A native mapper exists only with element-specific guardrails because some persisted JSON properties do not compile.",
+    "element-specific-contract": "A reviewed element-specific mapper/fallback contract exists for this element and path family. CSS fallback remains unless stripSafe proof is attached.",
+    "content-or-render-runtime": "The path affects content, runtime rendering, or an element-specific renderer rather than direct CSS declaration mapping.",
+    "requires-css-fallback": "The path requires source CSS fallback unless a dedicated mapper and compile proof are added.",
+    "needs-element-specific-mapper": "The path is known from source contracts but has no declared mapper contract yet."
+  },
+  "stripSafeRequires": [
+    "source contract path is covered by an explicit rule",
+    "CSS declaration to Oxygen/Breakdance JSON path is documented",
+    "JSON shape smoke test exists",
+    "compiled CSS or rendered page proof exists for the target element/property pair",
+    "audit proves the source CSS declaration was consumed without dead writes"
+  ],
+  "cssDeclarationPropertyCoverage": {
+    "customPropertyStatus": "css-custom-property-runtime",
+    "recognizedBySharedMapper": [
+      "align-content",
+      "align-items",
+      "aspect-ratio",
+      "background",
+      "background-color",
+      "border-bottom-left-radius",
+      "border-bottom-right-radius",
+      "border-radius",
+      "border-top-left-radius",
+      "border-top-right-radius",
+      "bottom",
+      "color",
+      "column-gap",
+      "display",
+      "flex-basis",
+      "flex-direction",
+      "flex-grow",
+      "flex-shrink",
+      "flex-wrap",
+      "font-family",
+      "font-size",
+      "font-style",
+      "font-weight",
+      "gap",
+      "grid-auto-columns",
+      "grid-auto-flow",
+      "grid-auto-rows",
+      "grid-template-columns",
+      "grid-template-rows",
+      "height",
+      "justify-content",
+      "left",
+      "letter-spacing",
+      "line-height",
+      "margin",
+      "margin-bottom",
+      "margin-left",
+      "margin-right",
+      "margin-top",
+      "max-height",
+      "max-width",
+      "min-height",
+      "min-width",
+      "mix-blend-mode",
+      "object-fit",
+      "object-position",
+      "opacity",
+      "order",
+      "overflow",
+      "overflow-x",
+      "overflow-y",
+      "padding",
+      "padding-bottom",
+      "padding-left",
+      "padding-right",
+      "padding-top",
+      "position",
+      "right",
+      "row-gap",
+      "text-align",
+      "text-decoration",
+      "text-transform",
+      "top",
+      "width",
+      "z-index"
+    ],
+    "recognizedButFallbackOnly": [
+      "-webkit-mask",
+      "-webkit-mask-image",
+      "-webkit-mask-position",
+      "-webkit-mask-repeat",
+      "-webkit-mask-size",
+      "animation",
+      "animation-duration",
+      "backdrop-filter",
+      "background-image",
+      "background-position",
+      "background-repeat",
+      "background-size",
+      "border",
+      "border-bottom",
+      "border-color",
+      "border-left",
+      "border-left-color",
+      "border-left-style",
+      "border-left-width",
+      "border-right",
+      "border-style",
+      "border-top",
+      "border-top-color",
+      "border-top-style",
+      "border-top-width",
+      "border-width",
+      "box-shadow",
+      "content",
+      "cursor",
+      "fill",
+      "filter",
+      "flex",
+      "grid-column-start",
+      "list-style-position",
+      "list-style-type",
+      "margin-block-end",
+      "margin-block-start",
+      "mask",
+      "mask-image",
+      "mask-position",
+      "mask-repeat",
+      "mask-size",
+      "padding-inline-end",
+      "padding-inline-start",
+      "perspective",
+      "pointer-events",
+      "stroke",
+      "stroke-linecap",
+      "stroke-width",
+      "text-decoration-color",
+      "transform",
+      "transform-origin",
+      "transition-duration",
+      "white-space",
+      "transition"
+    ]
+  },
+  "cssMacroCoverage": {
+    "sharedMapperFamilies": [
+      "background",
+      "backgroundColor",
+      "border_complex",
+      "border_radius",
+      "borders",
+      "borders_without_shadows",
+      "layout_basic_flex",
+      "layoutV2",
+      "simpleLayout",
+      "spacing_all",
+      "spacing_complex",
+      "spacing_margin_all",
+      "spacing_margin_y",
+      "spacing_padding_all",
+      "typography",
+      "typographyWithHoverableColorAndEffects",
+      "typographyWithHoverableEverything"
+    ],
+    "elementSpecificContracts": [
+      "EssentialElements_PostsSharedCss",
+      "accordionDesign",
+      "atomV1ButtonButton",
+      "atomV1ButtonCss",
+      "atomV1FormCss",
+      "atomV1IconCss",
+      "atomV1LightboxCss",
+      "atomV1MenuAdditionalSectionCss",
+      "atomV1MenuColumnCss",
+      "atomV1MenuCss",
+      "atomV1MenuDropdownCss",
+      "atomV1MenuDropdownLinkCss",
+      "atomV1MenuDropdownLinkGraphicCss",
+      "atomV1TabsCss",
+      "AtomV1SwiperCss",
+      "fancyBackgroundCss",
+      "filters",
+      "filtersHover",
+      "formContainer",
+      "pagination",
+      "wooCartCrossSellDesign",
+      "wooCartTableDesign",
+      "wooCartTotalsDesign",
+      "wooCheckoutAdditionalDesign",
+      "wooCheckoutBillingDesign",
+      "wooCheckoutCouponDesign",
+      "wooCheckoutOrderReviewDesign",
+      "wooCheckoutPaymentDesign",
+      "wooCheckoutShippingDesign",
+      "wooCheckoutTotalsDesign",
+      "wooGlobalStyler",
+      "wooPresetProductsListElementsDesign",
+      "wooPresetProductsListLayoutDesign",
+      "wooPresetProductWrapperDesign",
+      "wooPresetStockDesign"
+    ],
+    "fallbackOrRuntimeContracts": []
+  },
+  "elementRules": [
+    {
+      "class": "EssentialElements\\MiniCart",
+      "match": "prefix",
+      "path": "design.cart",
+      "status": "element-specific-contract",
+      "reason": "Mini Cart cart/offcanvas paths target generated WooCommerce cart descendants and CSS custom properties; handled by the Mini Cart element-specific contract backlog.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\MiniCart",
+      "match": "prefix",
+      "path": "design.link",
+      "status": "element-specific-contract",
+      "reason": "Mini Cart link/toggle paths target nested toggle icon, subtotal, and counter descendants including hover states; handled by the Mini Cart element-specific contract backlog.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PricingTable",
+      "match": "prefix",
+      "path": "design.container.shadow",
+      "status": "element-specific-contract",
+      "reason": "Pricing Table container shadow renders on the table wrapper and needs Pricing Table element-specific selector proof.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PricingTable",
+      "match": "prefix",
+      "path": "design.container.accent",
+      "status": "element-specific-contract",
+      "reason": "Pricing Table featured/accent values drive generated accent label and featured wrapper selectors.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PricingTable",
+      "match": "exact",
+      "path": "design.container.content_alignment",
+      "status": "element-specific-contract",
+      "reason": "Pricing Table content alignment targets internal content layout rather than the outer element box.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PricingTable",
+      "match": "prefix",
+      "path": "design.accent",
+      "status": "element-specific-contract",
+      "reason": "Pricing Table accent paths render via accent label declarations and macros.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PricingTable",
+      "match": "prefix",
+      "path": "design.price",
+      "status": "element-specific-contract",
+      "reason": "Pricing Table price paths target nested amount, currency, period, badge, and nudge selectors.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PricingTable",
+      "match": "prefix",
+      "path": "design.features",
+      "status": "element-specific-contract",
+      "reason": "Pricing Table feature paths target generated feature row/icon descendants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PricingTable",
+      "match": "exact",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Pricing Table button styling is delegated through the atom button macro and needs Pricing Table-specific proof.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductimages",
+      "match": "prefix",
+      "path": "design.sale_badge",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Images sale badge paths target generated WooCommerce sale badge descendants and positioning.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductimages",
+      "match": "prefix",
+      "path": "design.zoom_icon",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Images zoom icon paths target generated zoom icon descendants including hover state selectors.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductimages",
+      "match": "prefix",
+      "path": "design.image.borders",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Images image border paths target product gallery image wrappers and need element-specific proof.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductimages",
+      "match": "prefix",
+      "path": "design.thumbnails",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Images thumbnail paths target generated gallery thumbnail descendants, active state, and hover state selectors.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Postslist",
+      "match": "prefix",
+      "path": "design.post",
+      "status": "element-specific-contract",
+      "reason": "Posts List post paths target generated post-card descendants including image, meta, taxonomy, content, and button subparts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Popup",
+      "match": "prefix",
+      "path": "design.overlay",
+      "status": "element-specific-contract",
+      "reason": "Popup overlay paths target the generated popup overlay and runtime popup wrapper.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Popup",
+      "match": "prefix",
+      "path": "design.popup",
+      "status": "element-specific-contract",
+      "reason": "Popup panel paths target generated popup panel positioning, size, layout, background, border, and padding controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Popup",
+      "match": "prefix",
+      "path": "design.close_button",
+      "status": "element-specific-contract",
+      "reason": "Popup close button paths target generated close button descendants including hover states.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ScrollProgress",
+      "match": "prefix",
+      "path": "design.tracker",
+      "status": "element-specific-contract",
+      "reason": "Scroll Progress tracker paths target generated line/circle progress descendants and percentage text.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ScrollProgress",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Scroll Progress container paths control fixed/sticky placement and offsets for the generated progress indicator.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\CountdownTimer",
+      "match": "prefix",
+      "path": "design.timer",
+      "status": "element-specific-contract",
+      "reason": "Countdown Timer timer paths target generated timer alignment, divider, and label descendants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\CountdownTimer",
+      "match": "prefix",
+      "path": "design.digits",
+      "status": "element-specific-contract",
+      "reason": "Countdown Timer digit paths target generated default, donut, and flip digit renderers.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\HeaderBuilder",
+      "match": "prefix",
+      "path": "design.sticky",
+      "status": "element-specific-contract",
+      "reason": "Header Builder sticky paths target sticky header runtime behavior, generated sticky styles, scroll behavior, and sticky positioning.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\HeaderBuilder",
+      "match": "prefix",
+      "path": "design.overlay",
+      "status": "element-specific-contract",
+      "reason": "Header Builder overlay paths target generated overlay header runtime behavior and z-index styling.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\HeaderBuilder",
+      "match": "prefix",
+      "path": "design.size",
+      "status": "element-specific-contract",
+      "reason": "Header Builder size paths target custom header width controls on the generated header wrapper.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\BackToTop",
+      "match": "prefix",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Back To Top button paths target generated button, icon, progress, and hover state descendants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\BackToTop",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Back To Top container paths control sticky placement and alignment for the generated floating button.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\SimpleTestimonial",
+      "match": "prefix",
+      "path": "design.image",
+      "status": "element-specific-contract",
+      "reason": "Simple Testimonial image paths target generated image size, outline, shape, shadow, and filter controls through custom properties and descendant CSS.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\SimpleTestimonial",
+      "match": "prefix",
+      "path": "design.quotes",
+      "status": "element-specific-contract",
+      "reason": "Simple Testimonial quote paths target generated quote mark icon size, color, offsets, and responsive visibility descendants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Gallery",
+      "match": "prefix",
+      "path": "design.images",
+      "status": "element-specific-contract",
+      "reason": "Gallery image paths target generated image wrappers for opacity, transition, shadow, borders, background, filters, and hover variants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Gallery",
+      "match": "prefix",
+      "path": "design.captions",
+      "status": "element-specific-contract",
+      "reason": "Gallery caption paths target generated caption overlays for visibility, transition, background, typography, padding, and responsive hiding.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Gallery",
+      "match": "exact",
+      "path": "design.lightbox",
+      "status": "element-specific-contract",
+      "reason": "Gallery lightbox is an element runtime contract, not a shared native selector style property.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\TableOfContents",
+      "match": "prefix",
+      "path": "design.header",
+      "status": "element-specific-contract",
+      "reason": "Table Of Contents header paths target the generated collapsible header, icon, typography, padding, background, and disable behavior.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\TableOfContents",
+      "match": "prefix",
+      "path": "design.list",
+      "status": "element-specific-contract",
+      "reason": "Table Of Contents list paths target generated list bars, active item state, indentation, spacing, typography, and style variants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\TableOfContents",
+      "match": "exact",
+      "path": "design.container.content_alignment",
+      "status": "element-specific-contract",
+      "reason": "Table Of Contents content alignment targets the generated TOC container layout contract.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageAccordion",
+      "match": "prefix",
+      "path": "design.image",
+      "status": "element-specific-contract",
+      "reason": "Image Accordion image paths target generated accordion panels for transition, shadow, radius, hover expansion, scale, and overlay variants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageAccordion",
+      "match": "prefix",
+      "path": "design.content",
+      "status": "element-specific-contract",
+      "reason": "Image Accordion content paths target generated icon, title, text, hover visibility, typography, and content hover effects.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Image2",
+      "match": "prefix",
+      "path": "design.image",
+      "status": "element-specific-contract",
+      "reason": "Image element paths target generated media sizing, aspect ratio, object fit, object position, and custom ratio controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Image2",
+      "match": "prefix",
+      "path": "design.effects",
+      "status": "element-specific-contract",
+      "reason": "Image element effects paths target generated filter, opacity, blend mode, transition, and hover effect CSS.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\SocialShareButtons",
+      "match": "prefix",
+      "path": "design.position",
+      "status": "element-specific-contract",
+      "reason": "Social Share position paths target generated alignment, placement, and floating share bar positioning.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\SocialShareButtons",
+      "match": "prefix",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Social Share button paths target generated share button icon sizing, padding, border, colors, and hover variants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\SocialShareButtons",
+      "match": "prefix",
+      "path": "design.style",
+      "status": "element-specific-contract",
+      "reason": "Social Share style paths control generated share button layout and display variants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooShopFilters",
+      "match": "prefix",
+      "path": "design.chips",
+      "status": "element-specific-contract",
+      "reason": "Woo Shop Filters chip paths target generated active/filter chips for background, hover, typography, spacing, padding, borders, and shadow.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooShopFilters",
+      "match": "prefix",
+      "path": "design.rating_filter",
+      "status": "element-specific-contract",
+      "reason": "Woo Shop Filters rating paths target generated rating filter stars and spacing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooShopFilters",
+      "match": "prefix",
+      "path": "design.active_filters",
+      "status": "element-specific-contract",
+      "reason": "Woo Shop Filters active filter paths target generated active filter spacing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FancyTestimonial",
+      "match": "prefix",
+      "path": "design.wrapper",
+      "status": "element-specific-contract",
+      "reason": "Fancy Testimonial wrapper paths target generated testimonial card boxing, background, padding, and borders.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FancyTestimonial",
+      "match": "prefix",
+      "path": "design.image",
+      "status": "element-specific-contract",
+      "reason": "Fancy Testimonial image paths target generated testimonial media position, size, and border controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FancyTestimonial",
+      "match": "prefix",
+      "path": "design.quotes",
+      "status": "element-specific-contract",
+      "reason": "Fancy Testimonial quote paths target generated quote icon color and size controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FancyTestimonial",
+      "match": "prefix",
+      "path": "design.stars",
+      "status": "element-specific-contract",
+      "reason": "Fancy Testimonial star paths target generated rating star position, size, and color controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FancyTestimonial",
+      "match": "exact",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Fancy Testimonial button is an element-local generated button contract.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FrequentlyAskedQuestions",
+      "match": "prefix",
+      "path": "design.wrapper",
+      "status": "element-specific-contract",
+      "reason": "FAQ wrapper paths target generated FAQ width and background controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FrequentlyAskedQuestions",
+      "match": "prefix",
+      "path": "design.item",
+      "status": "element-specific-contract",
+      "reason": "FAQ item paths target generated question item padding, transition, spacing, background, active state, icon, and button controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageBox",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Image Box container paths target generated content padding and content positioning controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageBox",
+      "match": "prefix",
+      "path": "design.image",
+      "status": "element-specific-contract",
+      "reason": "Image Box image paths target generated media position, alignment, size, border, shadow, object fit, and object position controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageBox",
+      "match": "exact",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Image Box button is an element-local generated button contract.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ContentToggle",
+      "match": "prefix",
+      "path": "design.switch",
+      "status": "element-specific-contract",
+      "reason": "Content Toggle switch paths target generated toggle dimensions, padding, radius, vertical placement, background, thumb, and active state controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ContentToggle",
+      "match": "prefix",
+      "path": "design.label",
+      "status": "element-specific-contract",
+      "reason": "Content Toggle label paths target generated toggle label typography and active color controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\SocialIcons",
+      "match": "prefix",
+      "path": "design.icons",
+      "status": "element-specific-contract",
+      "reason": "Social Icons icon paths target generated icon shape, background, radius, padding, border, size, color, and hover variants.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\SocialIcons",
+      "match": "prefix",
+      "path": "design.effect",
+      "status": "element-specific-contract",
+      "reason": "Social Icons effect paths target generated transition, opacity, scale-on-hover, and hover opacity controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FancyDivider",
+      "match": "prefix",
+      "path": "design.divider",
+      "status": "element-specific-contract",
+      "reason": "Fancy Divider paths target generated divider style, width, and pattern size/color/amount controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FancyDivider",
+      "match": "prefix",
+      "path": "design.content",
+      "status": "element-specific-contract",
+      "reason": "Fancy Divider content paths target generated divider label spacing, position, typography, size, color, borders, and width.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ProgressBar",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Progress Bar container paths target generated track radius, background color, and stripe disable controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ProgressBar",
+      "match": "prefix",
+      "path": "design.progress_bar",
+      "status": "element-specific-contract",
+      "reason": "Progress Bar fill paths target generated progress background, radius, and padding controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ProgressBar",
+      "match": "prefix",
+      "path": "design.animation",
+      "status": "element-specific-contract",
+      "reason": "Progress Bar animation paths target generated stripe animation, scroll-triggered animation, and transition duration controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\AnimatedHeading",
+      "match": "prefix",
+      "path": "design.effect",
+      "status": "element-specific-contract",
+      "reason": "Animated Heading effect paths target generated rotating and typing effect type, duration, background, spacing, transform origin, typography, and cursor controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\CommentsList",
+      "match": "prefix",
+      "path": "design.comment",
+      "status": "element-specific-contract",
+      "reason": "Comments List paths target generated comment avatar, border, padding, background, arrow, and spacing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Tooltip",
+      "match": "prefix",
+      "path": "design.tooltip",
+      "status": "element-specific-contract",
+      "reason": "Tooltip paths target generated tooltip arrow, background, radius, padding, and rich typography descendant controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\BasicList",
+      "match": "prefix",
+      "path": "design.list",
+      "status": "element-specific-contract",
+      "reason": "Basic List paths target generated list marker type, marker content, marker width, colors, hover color, indentation, and item spacing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Masker",
+      "match": "prefix",
+      "path": "design.mask",
+      "status": "element-specific-contract",
+      "reason": "Masker paths target generated CSS mask shape, custom URL, repeat, position, size, and custom size controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ScrollingImage",
+      "match": "prefix",
+      "path": "design.image",
+      "status": "element-specific-contract",
+      "reason": "Scrolling Image image paths target generated scrolling media dimensions, duration, and borders.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ScrollingImage",
+      "match": "prefix",
+      "path": "design.caption",
+      "status": "element-specific-contract",
+      "reason": "Scrolling Image caption paths target generated caption position, spacing, background, width, and typography.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\LogoList",
+      "match": "prefix",
+      "path": "design.list",
+      "status": "element-specific-contract",
+      "reason": "Logo List paths target generated list width, type, alignment, vertical gaps, gradient overlay, and animation duration controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\LogoList",
+      "match": "prefix",
+      "path": "design.logo",
+      "status": "element-specific-contract",
+      "reason": "Logo List logo paths target generated logo sizing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\BusinessHours",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Business Hours container paths target generated wrapper shadow controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\BusinessHours",
+      "match": "prefix",
+      "path": "design.rows",
+      "status": "element-specific-contract",
+      "reason": "Business Hours row paths target generated row padding, alternating/accent backgrounds, borders, and border colors.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageComparison",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Image Comparison container paths target generated comparison wrapper max-width controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageComparison",
+      "match": "prefix",
+      "path": "design.separator",
+      "status": "element-specific-contract",
+      "reason": "Image Comparison separator paths target generated divider width and color controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageComparison",
+      "match": "prefix",
+      "path": "design.labels",
+      "status": "element-specific-contract",
+      "reason": "Image Comparison label paths target generated before/after label background, padding, typography, and position.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ProductReviews",
+      "match": "prefix",
+      "path": "design.reviews",
+      "status": "element-specific-contract",
+      "reason": "Product Reviews paths target generated review stars, avatar, separator visibility, color, and width controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\StarRating",
+      "match": "prefix",
+      "path": "design.stars",
+      "status": "element-specific-contract",
+      "reason": "Star Rating star paths target generated star colors, gap, and size controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\StarRating",
+      "match": "prefix",
+      "path": "design.label",
+      "status": "element-specific-contract",
+      "reason": "Star Rating label paths target generated label position, typography, and vertical layout controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Basicslider",
+      "match": "prefix",
+      "path": "design.size",
+      "status": "element-specific-contract",
+      "reason": "Basic Slider size paths target generated slider custom height controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Basicslider",
+      "match": "prefix",
+      "path": "design.slide",
+      "status": "element-specific-contract",
+      "reason": "Basic Slider slide paths target generated slide padding, child alignment, vertical alignment, and content width controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Basicslider",
+      "match": "exact",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Basic Slider button is an element-local generated button contract.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ContentReveal",
+      "match": "prefix",
+      "path": "design.overlay",
+      "status": "element-specific-contract",
+      "reason": "Content Reveal overlay paths target generated overlay gradient, vertical alignment, and reveal button controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ContentReveal",
+      "match": "prefix",
+      "path": "design.content",
+      "status": "element-specific-contract",
+      "reason": "Content Reveal content paths target generated transition and max-width controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\NotificationBar",
+      "match": "prefix",
+      "path": "design.box",
+      "status": "element-specific-contract",
+      "reason": "Notification Bar box paths target generated width, padding, background, accent, border width, and radius controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Section",
+      "match": "prefix",
+      "path": "design.size",
+      "status": "element-specific-contract",
+      "reason": "Section size paths target generated viewport, custom height, and container width section controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Section",
+      "match": "prefix",
+      "path": "design.buttons",
+      "status": "element-specific-contract",
+      "reason": "Section button paths target generated primary and secondary section button contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Section",
+      "match": "prefix",
+      "path": "design.dividers",
+      "status": "element-specific-contract",
+      "reason": "Section divider paths target generated section shape divider contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Woopagecheckout",
+      "match": "prefix",
+      "path": "design",
+      "status": "element-specific-contract",
+      "reason": "Woo Checkout paths target generated checkout sub-section contracts for coupon, billing, shipping, additional info, totals, and payment blocks.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Grid",
+      "match": "prefix",
+      "path": "design.grid",
+      "status": "element-specific-contract",
+      "reason": "Grid paths target generated item count, item alignment, item spacing, and original-dimension layout controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageHoverCard",
+      "match": "prefix",
+      "path": "design.effects",
+      "status": "element-specific-contract",
+      "reason": "Image Hover Card effect paths target generated transition, border width, and border color controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageHoverCard",
+      "match": "prefix",
+      "path": "design.overlay",
+      "status": "element-specific-contract",
+      "reason": "Image Hover Card overlay paths target generated overlay opacity and color controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PostMeta",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Post Meta container paths target generated metadata alignment controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PostMeta",
+      "match": "prefix",
+      "path": "design.graphics",
+      "status": "element-specific-contract",
+      "reason": "Post Meta graphics paths target generated author avatar and icon sizing, radius, and visibility controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\PulseDot",
+      "match": "prefix",
+      "path": "design.pulse_dot",
+      "status": "element-specific-contract",
+      "reason": "Pulse Dot paths target generated dot size, color, animation duration, pulse scale, and radius controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\SimpleCounter",
+      "match": "prefix",
+      "path": "design.wrapper",
+      "status": "element-specific-contract",
+      "reason": "Simple Counter wrapper paths target generated counter alignment, width, padding, borders, and background controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\StatsGrid",
+      "match": "prefix",
+      "path": "design.items",
+      "status": "element-specific-contract",
+      "reason": "Stats Grid item paths target generated item alignment, background, borders, padding, and shadow controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductmeta",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Meta container paths target generated layout and divider controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooshoppage",
+      "match": "prefix",
+      "path": "design.products_list",
+      "status": "element-specific-contract",
+      "reason": "Woo Shop Page product list paths target generated product list elements, layout, product wrapper, and button style contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooshoppage",
+      "match": "prefix",
+      "path": "design.result_count",
+      "status": "element-specific-contract",
+      "reason": "Woo Shop Page result count paths target generated result count typography controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Author",
+      "match": "prefix",
+      "path": "design.image",
+      "status": "element-specific-contract",
+      "reason": "Author image paths target generated author image size and radius controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Author",
+      "match": "prefix",
+      "path": "design.links",
+      "status": "element-specific-contract",
+      "reason": "Author link paths target generated all-posts and website link contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Badge",
+      "match": "prefix",
+      "path": "design.badge",
+      "status": "element-specific-contract",
+      "reason": "Badge paths target generated badge background, padding, border, and radius controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Button",
+      "match": "prefix",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Button paths target generated button style, custom full-width breakpoint, and button design contract.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Button",
+      "match": "exact",
+      "path": "design.lightbox",
+      "status": "element-specific-contract",
+      "reason": "Button lightbox is an element runtime contract, not a shared native selector style property.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\CodeBlock",
+      "match": "prefix",
+      "path": "design.wrapper",
+      "status": "element-specific-contract",
+      "reason": "Code Block wrapper paths target generated code wrapper width, background, borders, and padding controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\MenuCustomArea",
+      "match": "prefix",
+      "path": "design.dropdown",
+      "status": "element-specific-contract",
+      "reason": "Menu Custom Area dropdown paths target generated dropdown, columns, links, and additional section contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\TabLink",
+      "match": "prefix",
+      "path": "design.design",
+      "status": "element-specific-contract",
+      "reason": "Tab Link design paths target generated tab typography, flex layout, background, and spacing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Video",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Video container paths target generated overlay controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Video",
+      "match": "prefix",
+      "path": "design.lazy_load",
+      "status": "element-specific-contract",
+      "reason": "Video lazy-load paths target generated play icon color, size, and hover color controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooWidget",
+      "match": "prefix",
+      "path": "design.general",
+      "status": "element-specific-contract",
+      "reason": "Woo Widget general paths target generated widget border controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooWidget",
+      "match": "prefix",
+      "path": "design.title",
+      "status": "element-specific-contract",
+      "reason": "Woo Widget title paths target generated title visibility, typography, and spacing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Woopageaccount",
+      "match": "prefix",
+      "path": "design.content",
+      "status": "element-specific-contract",
+      "reason": "Woo Account Page content paths target generated account content background, padding, borders, and global-style override controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductinfo",
+      "match": "prefix",
+      "path": "design.style",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Info style paths target generated info width, heading visibility, separators, and separator visibility controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WrapperLink",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Wrapper Link container paths target generated transition, hover transition, hover border color, and hover shadow controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\AdjacentPosts",
+      "match": "prefix",
+      "path": "design.arrow",
+      "status": "element-specific-contract",
+      "reason": "Adjacent Posts arrow paths target generated arrow size, color, and hover color controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Blockquote",
+      "match": "prefix",
+      "path": "design.quotes",
+      "status": "element-specific-contract",
+      "reason": "Blockquote quote paths target generated quote color, size, and alignment controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\CircleCounter",
+      "match": "prefix",
+      "path": "design.size",
+      "status": "element-specific-contract",
+      "reason": "Circle Counter size paths target generated counter size controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\CircleCounter",
+      "match": "prefix",
+      "path": "design.style",
+      "status": "element-specific-contract",
+      "reason": "Circle Counter style paths target generated value position and spacing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\DualHeading",
+      "match": "prefix",
+      "path": "design",
+      "status": "element-specific-contract",
+      "reason": "Dual Heading paths target generated combined, primary, and secondary heading typography contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\IconBox",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Icon Box container paths target generated shadow and alignment controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\IconBox",
+      "match": "exact",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Icon Box button is an element-local generated button contract.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\ImageWithZoom",
+      "match": "prefix",
+      "path": "design.effect",
+      "status": "element-specific-contract",
+      "reason": "Image With Zoom effect paths target generated cursor, transition duration, and zoom scale controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\MenuDropdown",
+      "match": "prefix",
+      "path": "design",
+      "status": "element-specific-contract",
+      "reason": "Menu Dropdown paths target generated columns, links, and additional section dropdown contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\RelatedProducts",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Related Products container paths target generated product grid sizing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\RelatedProducts",
+      "match": "prefix",
+      "path": "design.title",
+      "status": "element-specific-contract",
+      "reason": "Related Products title paths target generated title visibility and typography controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\UpsellProducts",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Upsell Products container paths target generated product grid sizing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\UpsellProducts",
+      "match": "prefix",
+      "path": "design.title",
+      "status": "element-specific-contract",
+      "reason": "Upsell Products title paths target generated title visibility and typography controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Woopageshoppingcart",
+      "match": "prefix",
+      "path": "design",
+      "status": "element-specific-contract",
+      "reason": "Woo Shopping Cart paths target generated cart contents, totals, and cross-sell block contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Breadcrumbs",
+      "match": "prefix",
+      "path": "design.breadcrumbs",
+      "status": "element-specific-contract",
+      "reason": "Breadcrumbs paths target generated breadcrumb spacing controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Breadcrumbs",
+      "match": "exact",
+      "path": "design.container.content_alignment",
+      "status": "element-specific-contract",
+      "reason": "Breadcrumbs container content alignment targets the generated breadcrumbs container contract.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooCartCrossSells",
+      "match": "prefix",
+      "path": "design.cross_sells",
+      "status": "element-specific-contract",
+      "reason": "Woo Cart Cross Sells paths target generated cross-sell block and slider layout contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooCartTotals",
+      "match": "prefix",
+      "path": "design.totals",
+      "status": "element-specific-contract",
+      "reason": "Woo Cart Totals paths target generated totals block and title visibility contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductcartbutton",
+      "match": "prefix",
+      "path": "design.button",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Cart Button paths target generated add-to-cart button contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductcartbutton",
+      "match": "prefix",
+      "path": "design.size",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Cart Button size paths target generated button fill-container behavior.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductrating",
+      "match": "prefix",
+      "path": "design.stars",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Rating star paths target generated star color and size controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Advancedslider",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Advanced Slider container paths target generated custom-height controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Column",
+      "match": "prefix",
+      "path": "design.order",
+      "status": "element-specific-contract",
+      "reason": "Column order paths target generated responsive ordering controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\CommentForm",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Comment Form container paths target generated form container contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\FormBuilder",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Form Builder container paths target generated form container contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\InstagramPost",
+      "match": "prefix",
+      "path": "design.post",
+      "status": "element-specific-contract",
+      "reason": "Instagram Post paths target generated post width controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\LoginForm",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Login Form container paths target generated form container contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\LottieAnimation",
+      "match": "prefix",
+      "path": "design.wrapper",
+      "status": "element-specific-contract",
+      "reason": "Lottie Animation wrapper paths target generated animation wrapper width controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Product",
+      "match": "prefix",
+      "path": "design.image",
+      "status": "element-specific-contract",
+      "reason": "Product image paths target generated product image positioning controls.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\RegisterForm",
+      "match": "prefix",
+      "path": "design.container",
+      "status": "element-specific-contract",
+      "reason": "Register Form container paths target generated form container contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Tabs",
+      "match": "prefix",
+      "path": "design.content",
+      "status": "element-specific-contract",
+      "reason": "Tabs content paths target generated tab content contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\TextLink",
+      "match": "exact",
+      "path": "design.lightbox",
+      "status": "element-specific-contract",
+      "reason": "Text Link lightbox is an element runtime contract, not a shared native selector style property.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooCheckoutBillingForm",
+      "match": "prefix",
+      "path": "design.billing_details",
+      "status": "element-specific-contract",
+      "reason": "Woo Checkout Billing Form paths target generated billing details form contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooCheckoutPayment",
+      "match": "prefix",
+      "path": "design.payment",
+      "status": "element-specific-contract",
+      "reason": "Woo Checkout Payment paths target generated payment block contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\WooCheckoutShippingForm",
+      "match": "prefix",
+      "path": "design.shipping_address",
+      "status": "element-specific-contract",
+      "reason": "Woo Checkout Shipping Form paths target generated shipping address form contracts.",
+      "stripSafe": false
+    },
+    {
+      "class": "EssentialElements\\Wooproductstock",
+      "match": "prefix",
+      "path": "design.in_stock",
+      "status": "element-specific-contract",
+      "reason": "Woo Product Stock paths target generated in-stock display contracts.",
+      "stripSafe": false
+    }
+  ],
+  "rules": [
+    {
+      "match": "prefix",
+      "path": "design.spacing",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["spacing"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.container.padding",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["spacing"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.container.borders",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["border"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.container.background",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["background"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.container.width",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["size"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.container.min_height",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["size"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.container.height",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["size"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.size.width",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["size"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.size.min_height",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["size"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.size.height",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["size"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.borders",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["border"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.background",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["background"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.typography",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["typography"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.text_colors",
+      "status": "native-shared-mapper",
+      "nativeFamilies": ["typography"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.layout",
+      "status": "native-with-guardrails",
+      "nativeFamilies": ["layout"],
+      "guardrails": [
+        "EssentialElements\\Column alignment must emit align_items, align, and vertical_align together.",
+        "EssentialElements\\Columns layout.justify_content is a dead write and must keep CSS fallback."
+      ],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.layout_v2",
+      "status": "native-with-guardrails",
+      "nativeFamilies": ["layout"],
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.container.margin",
+      "status": "native-with-guardrails",
+      "nativeFamilies": ["spacing"],
+      "guardrails": [
+        "container.margin left/right auto on EssentialElements\\Columns/Column is a dead write and must keep CSS fallback."
+      ],
+      "stripSafe": false
+    },
+    {
+      "match": "exact",
+      "path": "design",
+      "status": "content-or-render-runtime",
+      "reason": "Whole design object is passed into Oxygen/Breakdance runtime macros; individual referenced subpaths must carry the concrete mapper/fallback status.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.item",
+      "status": "element-specific-contract",
+      "reason": "Oxygen Dynamic Data Loop item styling targets generated loop-item descendants for background, borders, and padding.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.post",
+      "status": "element-specific-contract",
+      "reason": "Oxygen Posts/Term Loop post styling targets generated loop-item descendants for background, borders, and padding.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.oembed",
+      "status": "element-specific-contract",
+      "reason": "Oxygen oEmbed iframe sizing and aspect-ratio paths target the generated oEmbed wrapper and iframe contract.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.accent",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.active_filters",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.additional_info",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.additional_section",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.animation",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.arrow",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.badge",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.billing_details",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.both",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.box",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.breadcrumbs",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.button",
+      "status": "needs-element-specific-mapper",
+      "reason": "Button-like subcontrols often map to nested atom button presets or generated descendants, not the wrapper box.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.buttons",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.caption",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.captions",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.cart",
+      "status": "needs-element-specific-mapper",
+      "reason": "Mini Cart and cart page subparts target nested WooCommerce/cart descendants and require element-specific mappers.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.chips",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.close_button",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.columns",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.comment",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.container",
+      "status": "needs-element-specific-mapper",
+      "reason": "Unclassified container subpaths are element-specific. More specific shared container rules above still win for padding, borders, background, size, and guarded margin.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.content",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.contents",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.coupon",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.cross_sells",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.design",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.digits",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.divider",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.dividers",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.dropdown",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.effect",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.effects",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.features",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.grid",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.general",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.graphics",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.header",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.icons",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.image",
+      "status": "needs-element-specific-mapper",
+      "reason": "Image subparts can target generated img wrappers, thumbnails, overlay icons, or product media children.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.images",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.in_stock",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.items",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.label",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.labels",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.lazy_load",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.lightbox",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.link",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.links",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.list",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.logo",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.mask",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.order",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.overlay",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.payment",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.position",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.popup",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.primary",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.products_list",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.price",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.progress_bar",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.pulse_dot",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.quotes",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.rating_filter",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.result_count",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.reviews",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.rows",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.sale_badge",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.shipping_address",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.secondary",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.separator",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.size",
+      "status": "needs-element-specific-mapper",
+      "reason": "Generic design.size paths are element-specific unless a more specific shared size rule above matches.",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.slide",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.stars",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.sticky",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.style",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.switch",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.thumbnails",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.timer",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.title",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.tooltip",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.totals",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.tracker",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.wrapper",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.zoom_icon",
+      "status": "needs-element-specific-mapper",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.tabs",
+      "status": "content-or-render-runtime",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.slider",
+      "status": "content-or-render-runtime",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.icon",
+      "status": "content-or-render-runtime",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.form",
+      "status": "content-or-render-runtime",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.elements",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.product_wrapper",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.filter_bar",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.pagination",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.advanced",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.woo",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.price_filter",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.attribute_filter",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.cart_contents",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.your_order",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    },
+    {
+      "match": "prefix",
+      "path": "design.notices",
+      "status": "requires-css-fallback",
+      "stripSafe": false
+    }
+  ]
+}

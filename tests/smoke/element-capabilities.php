@@ -15,6 +15,14 @@ $service = new OxygenElementCapabilityService();
 $all = $service->all();
 
 assert(isset($all['breakdanceFormsForOxygen']));
+assert(isset($all['cssMappingCoveragePolicy']));
+assert(($all['cssMappingCoveragePolicy']['sourceOfTruth'] ?? '') === 'config/css-mapping/breakdance-coverage-manifest.json plus live list_oxygen_element_capabilities output for the current site.');
+assert(isset($all['cssMappingCoveragePolicy']['coverageHarness']['oxygenInventory']));
+assert(isset($all['cssMappingCoveragePolicy']['coverageHarness']['realSourceSmoke']));
+assert(isset($all['cssMappingCoveragePolicy']['coverageHarness']['realSourceReviewGate']));
+assert(isset($all['cssMappingCoveragePolicy']['statuses']['element-specific-contract']));
+assert(isset($all['cssMappingCoveragePolicy']['statuses']['needs-element-specific-mapper']));
+assert(in_array('compiled CSS or rendered page proof', $all['cssMappingCoveragePolicy']['stripSafeRequires'] ?? [], true));
 assert(array_key_exists('safeHandAuthoredTargets', $all['breakdanceFormsForOxygen']));
 assert(isset($all['breakdanceFormsForOxygen']['safeHandAuthoredTargets'][ElementTypes::ESSENTIAL_FORM_BUILDER]));
 assert(isset($all['selectorCompilerSupport']['knownNativeSelectorGaps']));
