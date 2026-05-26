@@ -143,6 +143,60 @@ $tree = [
                         ],
                         'meta' => [
                             '_oxyaiSelectorDesign' => [
+                                'second-card' => [
+                                    'spacing' => [
+                                        'padding' => [
+                                            'breakpoint_base' => [
+                                                'top' => $length(12),
+                                                'right' => $length(16),
+                                                'bottom' => $length(12),
+                                                'left' => $length(16),
+                                                'editMode' => 'advanced',
+                                            ],
+                                        ],
+                                    ],
+                                    'background' => [
+                                        'color' => [
+                                            'breakpoint_base' => '#ffffff',
+                                        ],
+                                    ],
+                                    'borders' => [
+                                        'border' => [
+                                            'breakpoint_base' => [
+                                                'width' => $length(1),
+                                                'style' => 'solid',
+                                                'color' => '#e2e8f0',
+                                            ],
+                                        ],
+                                        'radius' => [
+                                            'breakpoint_base' => [
+                                                'all' => $length(8),
+                                                'editMode' => 'all',
+                                            ],
+                                        ],
+                                    ],
+                                    'layout' => [
+                                        'flex_direction' => [
+                                            'breakpoint_base' => 'row',
+                                        ],
+                                        'flex_wrap' => [
+                                            'breakpoint_base' => 'wrap',
+                                        ],
+                                    ],
+                                    'typography' => [
+                                        'font_family' => [
+                                            'breakpoint_base' => '"Inter"',
+                                        ],
+                                    ],
+                                    'effects' => [
+                                        'opacity' => [
+                                            'breakpoint_base' => 0.65,
+                                        ],
+                                        'custom_css' => [
+                                            'breakpoint_base' => '%%SELECTOR%%:focus { outline: 2px solid red; }',
+                                        ],
+                                    ],
+                                ],
                                 'first-card' => [
                                     'typography' => [
                                         'color' => [
@@ -184,7 +238,7 @@ $service = new SelectorRegistrationService();
 $result = $service->registerTreeSelectors($tree, false);
 
 assert($result['created'] === 2);
-assert($result['selectorPropertiesAttached'] === 1);
+assert($result['selectorPropertiesAttached'] === 2);
 assert($result['attachedElements'] === 3);
 assert($result['unmappedSelectorPropertyPaths'] === ['unsupported_bucket.example']);
 
@@ -216,6 +270,18 @@ $firstCard = $selectorsByName['first-card'];
 assert($firstCard['locked'] === false);
 assert(($firstCard['properties'] ?? null) instanceof stdClass);
 assert(str_contains(json_encode($firstCard), '"properties":{}'));
+
+$secondCard = $selectorsByName['second-card'];
+$secondProps = $secondCard['properties']['breakpoint_base'] ?? [];
+assert(($secondProps['spacing']['spacing']['padding']['top']['style'] ?? null) === '12px');
+assert(($secondProps['background']['background_color'] ?? null) === '#ffffff');
+assert(($secondProps['borders']['borders']['style'] ?? null) === 'solid');
+assert(($secondProps['borders']['border_radius']['editMode'] ?? null) === 'all');
+assert(($secondProps['layout']['flex_direction'] ?? null) === 'row wrap');
+assert(!isset($secondProps['layout']['flex_wrap']));
+assert(($secondProps['typography']['font_family'] ?? null) === 'Inter');
+assert(($secondProps['effects']['opacity'] ?? null) === 65);
+assert(($secondProps['effects']['custom_css'] ?? null) === ':selector:focus { outline: 2px solid red; }');
 
 assert(!isset($tree['root']['data']['properties']['meta']['_oxyaiSelectorDesign']));
 assert(!isset($tree['root']['children'][1]['data']['properties']['meta']['_oxyaiSelectorDesign']));

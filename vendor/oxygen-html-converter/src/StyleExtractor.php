@@ -166,7 +166,7 @@ class StyleExtractor
                     continue;
                 }
 
-                $this->applyCssProperty($properties, $boxCategory, $cssProp, (string) $value);
+                $this->applyCssProperty($properties, $boxCategory, $cssProp, (string) $value, $elementType);
             }
         } finally {
             $this->currentBreakpoint = $previousBreakpoint;
@@ -196,7 +196,7 @@ class StyleExtractor
 
             $supportedDeclarationCount++;
             if (!isset(self::SUPPORTED_PROPERTIES[$cssProp])
-                || !$this->canConvertCssPropertyValue($cssProp, (string) $value)
+                || !$this->canConvertCssPropertyValue($cssProp, (string) $value, $elementType)
             ) {
                 return false;
             }
@@ -216,7 +216,13 @@ class StyleExtractor
         ], true);
     }
 
-    private function applyCssProperty(array &$properties, string $boxCategory, string $cssProp, string $value): void
+    private function applyCssProperty(
+        array &$properties,
+        string $boxCategory,
+        string $cssProp,
+        string $value,
+        string $elementType
+    ): void
     {
         $value = trim($value);
         if ($value === '') {
@@ -248,6 +254,11 @@ class StyleExtractor
             return;
         }
 
+        if ($elementType === ElementTypes::ESSENTIAL_COLUMN && $cssProp === 'text-align') {
+            $this->setColumnAlignmentBundle($properties, ['align' => $value]);
+            return;
+        }
+
         if (in_array($cssProp, ['font-family', 'font-style', 'text-align', 'text-decoration', 'text-transform'], true)) {
             $this->setBreakpointValue($properties, ['typography', $this->oxygenKey($cssProp)], $value);
             return;
@@ -259,14 +270,14 @@ class StyleExtractor
         }
 
         if ($cssProp === 'padding' || $cssProp === 'margin') {
-            $this->setBoxSpacing($properties, $boxCategory, $cssProp, $this->parseShorthandSpacing($value));
+            $this->setBoxSpacing($properties, $boxCategory, $cssProp, $this->parseShorthandSpacing($value), true, $elementType);
             return;
         }
 
         if (str_starts_with($cssProp, 'padding-') || str_starts_with($cssProp, 'margin-')) {
             [$type, $side] = explode('-', $cssProp, 2);
             if (in_array($side, ['top', 'right', 'bottom', 'left'], true)) {
-                $this->setBoxSpacing($properties, $boxCategory, $type, [$side => $value], false);
+                $this->setBoxSpacing($properties, $boxCategory, $type, [$side => $value], false, $elementType);
             }
             return;
         }
@@ -293,6 +304,20 @@ class StyleExtractor
 
         if (isset($cornerMap[$cssProp])) {
             $this->setBorderRadius($properties, $boxCategory, [$cornerMap[$cssProp] => $value]);
+            return;
+        }
+
+        if ($elementType === ElementTypes::ESSENTIAL_COLUMNS && $cssProp === 'justify-content') {
+            return;
+        }
+
+        if ($elementType === ElementTypes::ESSENTIAL_COLUMN && $cssProp === 'align-items') {
+            $this->setColumnAlignmentBundle($properties, ['align_items' => $value]);
+            return;
+        }
+
+        if ($elementType === ElementTypes::ESSENTIAL_COLUMN && $cssProp === 'justify-content') {
+            $this->setColumnAlignmentBundle($properties, ['vertical_align' => $value]);
             return;
         }
 
@@ -361,14 +386,33 @@ class StyleExtractor
     /**
      * @param array<string, string> $sides
      */
-    private function setBoxSpacing(array &$properties, string $boxCategory, string $type, array $sides, bool $fromShorthand = true): void
+    private function setBoxSpacing(
+        array &$properties,
+        string $boxCategory,
+        string $type,
+        array $sides,
+        bool $fromShorthand = true,
+        string $elementType = ElementTypes::CONTAINER
+    ): void
     {
         $path = [$boxCategory, $type, $this->currentBreakpoint];
         $existing = $this->getNestedValue($properties, $path);
         $spacing = is_array($existing) ? $existing : [];
+        $suppressedAutoSide = false;
 
         foreach (['top', 'right', 'bottom', 'left'] as $side) {
             if (!isset($sides[$side])) {
+                continue;
+            }
+
+            if (
+                $type === 'margin'
+                && in_array($side, ['left', 'right'], true)
+                && strtolower(trim((string) $sides[$side])) === 'auto'
+                && $this->isBreakdanceColumnLikeElement($elementType)
+            ) {
+                $suppressedAutoSide = true;
+                unset($spacing[$side]);
                 continue;
             }
 
@@ -388,6 +432,9 @@ class StyleExtractor
                 (string) ($sides['left'] ?? ''),
             ];
             $allEqual = count(array_unique($sideValues)) === 1;
+            if ($suppressedAutoSide) {
+                $allEqual = false;
+            }
             if ($allEqual) {
                 $normalizedAll = $this->normalizeLength($sideValues[0]);
                 if ($normalizedAll === null) {
@@ -405,6 +452,70 @@ class StyleExtractor
         }
 
         $this->setNestedValue($properties, $path, $spacing);
+    }
+
+    /**
+     * Breakdance Columns/Column alignment controls are stored as a grouped UI
+     * state. Partial alignment writes can persist in JSON but fail to compile.
+     *
+     * @param array{align_items?:string,align?:string,vertical_align?:string} $updates
+     */
+    private function setColumnAlignmentBundle(array &$properties, array $updates): void
+    {
+        $layout = $properties['layout'] ?? [];
+
+        $alignItems = $this->breakpointScalar($layout['align_items'] ?? null)
+            ?? $updates['align_items']
+            ?? 'flex-start';
+        $align = $this->breakpointScalar($layout['align'] ?? null)
+            ?? $updates['align']
+            ?? $this->textAlignForFlexAlignment($alignItems);
+        $verticalAlign = $this->breakpointScalar($layout['vertical_align'] ?? null)
+            ?? $updates['vertical_align']
+            ?? $this->verticalAlignForFlexAlignment($alignItems);
+
+        if (isset($updates['align_items'])) {
+            $alignItems = $updates['align_items'];
+            if (!isset($updates['align'])) {
+                $align = $this->textAlignForFlexAlignment($alignItems);
+            }
+            if (!isset($updates['vertical_align'])) {
+                $verticalAlign = $this->verticalAlignForFlexAlignment($alignItems);
+            }
+        }
+        if (isset($updates['align'])) {
+            $align = $updates['align'];
+        }
+        if (isset($updates['vertical_align'])) {
+            $verticalAlign = $updates['vertical_align'];
+        }
+
+        $this->setBreakpointValue($properties, ['layout', 'align_items'], $alignItems);
+        $this->setBreakpointValue($properties, ['layout', 'align'], $align);
+        $this->setBreakpointValue($properties, ['layout', 'vertical_align'], $verticalAlign);
+    }
+
+    private function breakpointScalar($value): ?string
+    {
+        if (is_array($value) && isset($value[$this->currentBreakpoint]) && is_scalar($value[$this->currentBreakpoint])) {
+            return (string) $value[$this->currentBreakpoint];
+        }
+
+        return is_scalar($value) ? (string) $value : null;
+    }
+
+    private function textAlignForFlexAlignment(string $value): string
+    {
+        return match (strtolower(trim($value))) {
+            'center' => 'center',
+            'flex-end', 'end', 'right' => 'right',
+            default => 'left',
+        };
+    }
+
+    private function verticalAlignForFlexAlignment(string $value): string
+    {
+        return strtolower(trim($value)) === 'center' ? 'center' : 'flex-start';
     }
 
     /**
@@ -622,7 +733,11 @@ class StyleExtractor
         return $tokens;
     }
 
-    private function canConvertCssPropertyValue(string $cssProp, string $value): bool
+    private function canConvertCssPropertyValue(
+        string $cssProp,
+        string $value,
+        string $elementType = ElementTypes::CONTAINER
+    ): bool
     {
         $value = trim($value);
         if ($value === '') {
@@ -637,6 +752,17 @@ class StyleExtractor
             $parts = $this->splitCssTokens($value);
             if (count($parts) < 1 || count($parts) > 4) {
                 return false;
+            }
+
+            if (
+                $cssProp === 'margin'
+                && $this->isBreakdanceColumnLikeElement($elementType)
+            ) {
+                $normalizedParts = array_map(static fn (string $part): string => strtolower(trim($part)), $parts);
+                [$rightSide, $leftSide] = $this->resolveShorthandHorizontalSides($normalizedParts);
+                if ($rightSide === 'auto' || $leftSide === 'auto') {
+                    return false;
+                }
             }
 
             foreach ($parts as $part) {
@@ -663,6 +789,18 @@ class StyleExtractor
             return true;
         }
 
+        if (
+            in_array($cssProp, ['margin-left', 'margin-right'], true)
+            && $this->isBreakdanceColumnLikeElement($elementType)
+            && strtolower(trim($value)) === 'auto'
+        ) {
+            return false;
+        }
+
+        if ($elementType === ElementTypes::ESSENTIAL_COLUMNS && $cssProp === 'justify-content') {
+            return false;
+        }
+
         if ($cssProp === 'font-weight') {
             return $this->normalizeFontWeight($value) !== null;
         }
@@ -676,6 +814,33 @@ class StyleExtractor
         }
 
         return true;
+    }
+
+    private function isBreakdanceColumnLikeElement(string $elementType): bool
+    {
+        return in_array($elementType, [ElementTypes::ESSENTIAL_COLUMNS, ElementTypes::ESSENTIAL_COLUMN], true);
+    }
+
+    /**
+     * Resolve the right/left sides of a shorthand box value (margin/padding) using the
+     * 1/2/3/4 value CSS rule. Returns [$right, $left].
+     *
+     * @param array<int, string> $parts Already-normalized (trim/lowercase) tokens.
+     * @return array{0:string,1:string}
+     */
+    private function resolveShorthandHorizontalSides(array $parts): array
+    {
+        $count = count($parts);
+        if ($count === 1) {
+            return [$parts[0], $parts[0]];
+        }
+        if ($count === 2 || $count === 3) {
+            return [$parts[1], $parts[1]];
+        }
+        if ($count >= 4) {
+            return [$parts[1], $parts[3]];
+        }
+        return ['', ''];
     }
 
     private function isLengthProperty(string $cssProp): bool

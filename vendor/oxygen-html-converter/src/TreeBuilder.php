@@ -528,8 +528,12 @@ class TreeBuilder
         $contentProperties = $this->mapper->buildProperties($node);
 
         // Extract and convert inline style attributes only when inline style mode is enabled.
+        $inlineStyleDeclarations = $this->inlineStyles ? $this->styleExtractor->extract($node) : [];
+        if ($inlineStyleDeclarations !== []) {
+            $this->addBreakdanceCssMappingWarnings($inlineStyleDeclarations, $elementType, 'inline style');
+        }
         $convertedInlineStyles = $this->inlineStyles
-            ? $this->styleExtractor->extractAndConvert($node, $elementType)
+            ? $this->styleExtractor->toOxygenProperties($inlineStyleDeclarations, $elementType)
             : [];
         $styleProperties = $convertedInlineStyles !== []
             ? ['design' => $convertedInlineStyles]
@@ -795,6 +799,7 @@ class TreeBuilder
 
             $expandedDeclarations = $this->expandShorthandProperties($rule['declarations']);
             $materializedDeclarations = $this->filterNeutralFallbackDeclarations($expandedDeclarations);
+            $this->addBreakdanceCssMappingWarnings($materializedDeclarations, $elementType, $selector);
             $convertedStyles = $this->styleExtractor->toOxygenProperties(
                 $materializedDeclarations,
                 $elementType,
@@ -1241,6 +1246,65 @@ class TreeBuilder
             $iconName = $node->getAttribute('data-lucide') ?: $node->getAttribute('data-feather');
             $this->addWarning("Icon element (data-lucide=\"{$iconName}\") detected. Scripts are automatically included, but you may need to adjust the icon size or color manually in Oxygen.");
         }
+    }
+
+    /**
+     * @param array<string, string> $declarations
+     */
+    private function addBreakdanceCssMappingWarnings(array $declarations, string $elementType, string $context): void
+    {
+        if (
+            in_array($elementType, [ElementTypes::ESSENTIAL_COLUMNS, ElementTypes::ESSENTIAL_COLUMN], true)
+            && $this->declarationsUseHorizontalAutoMargin($declarations)
+        ) {
+            $this->addWarning(sprintf(
+                'CSS "%s" uses margin-left/right:auto on %s, which Breakdance Elements for Oxygen accepts in JSON but does not compile. OxyAI suppresses that dead write; use an OxygenElements\\Container wrapper or center the parent Column with the full alignment bundle.',
+                $context,
+                $elementType
+            ));
+        }
+
+        if ($elementType === ElementTypes::ESSENTIAL_COLUMNS && array_key_exists('justify-content', $declarations)) {
+            $this->addWarning(sprintf(
+                'CSS "%s" sets justify-content on EssentialElements\\Columns, but that property does not compile for Columns. OxyAI suppresses that dead write; use an OxygenElements\\Container outer wrapper or move alignment to the child Column.',
+                $context
+            ));
+        }
+
+        if (
+            $elementType === ElementTypes::ESSENTIAL_COLUMN
+            && (
+                array_key_exists('align-items', $declarations)
+                || array_key_exists('justify-content', $declarations)
+                || array_key_exists('text-align', $declarations)
+            )
+        ) {
+            $this->addWarning(sprintf(
+                'CSS "%s" writes Breakdance Column alignment. OxyAI emits align_items + align + vertical_align together because partial alignment writes can persist but fail to compile.',
+                $context
+            ));
+        }
+    }
+
+    /**
+     * @param array<string, string> $declarations
+     */
+    private function declarationsUseHorizontalAutoMargin(array $declarations): bool
+    {
+        foreach (['margin-left', 'margin-right'] as $property) {
+            if (strtolower(trim((string) ($declarations[$property] ?? ''))) === 'auto') {
+                return true;
+            }
+        }
+
+        if (!array_key_exists('margin', $declarations)) {
+            return false;
+        }
+
+        $sides = $this->styleExtractor->parseShorthandSpacing((string) $declarations['margin']);
+
+        return strtolower(trim((string) ($sides['left'] ?? ''))) === 'auto'
+            || strtolower(trim((string) ($sides['right'] ?? ''))) === 'auto';
     }
 
     /**

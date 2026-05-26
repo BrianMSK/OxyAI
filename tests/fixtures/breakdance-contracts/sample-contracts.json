@@ -1,0 +1,95 @@
+{
+  "generatedAt": "2026-05-24T00:00:00+00:00",
+  "elementCount": 3,
+  "elements": [
+    {
+      "class": "EssentialElements\\Column",
+      "name": "Column",
+      "category": "breakdance-elements-for-oxygen",
+      "cssDesignPaths": [
+        "design.size.width.style",
+        "design.layout",
+        "design.layout_v2",
+        "design.spacing",
+        "design.text_colors.text"
+      ],
+      "cssDeclarations": [
+        {
+          "selector": "%%SELECTOR%%",
+          "property": "width",
+          "value": "{{ design.size.width.style }}",
+          "designPaths": ["design.size.width.style"],
+          "contentPaths": [],
+          "isCustomProperty": false
+        },
+        {
+          "selector": "%%SELECTOR%%",
+          "property": "color",
+          "value": "{{ design.text_colors.text }}",
+          "designPaths": ["design.text_colors.text"],
+          "contentPaths": [],
+          "isCustomProperty": false
+        }
+      ],
+      "cssMacroCalls": [
+        {
+          "macro": "spacing_margin_y",
+          "arguments": "design.spacing",
+          "designPaths": ["design.spacing"],
+          "contentPaths": []
+        },
+        {
+          "macro": "notKnownMacro",
+          "arguments": "design.spacing",
+          "designPaths": ["design.spacing"],
+          "contentPaths": []
+        }
+      ],
+      "htmlContentPaths": [],
+      "htmlDesignPaths": []
+    },
+    {
+      "class": "EssentialElements\\Columns",
+      "name": "Columns",
+      "category": "breakdance-elements-for-oxygen",
+      "cssDesignPaths": [
+        "design.spacing.container",
+        "design.size.width.style",
+        "design.layout.stack_vertically"
+      ],
+      "htmlContentPaths": [],
+      "htmlDesignPaths": []
+    },
+    {
+      "class": "EssentialElements\\WooProductsList",
+      "name": "Products List",
+      "category": "breakdance-elements-for-oxygen",
+      "cssDesignPaths": [
+        "design.elements",
+        "design.product_wrapper",
+        "design.layout.slider",
+        "design.not_yet_classified"
+      ],
+      "cssDeclarations": [
+        {
+          "selector": "%%SELECTOR%% svg",
+          "property": "fill",
+          "value": "{{ design.not_yet_classified }}",
+          "designPaths": ["design.not_yet_classified"],
+          "contentPaths": [],
+          "isCustomProperty": false
+        },
+        {
+          "selector": "%%SELECTOR%%",
+          "property": "made-up-prop",
+          "value": "1",
+          "designPaths": [],
+          "contentPaths": [],
+          "isCustomProperty": false
+        }
+      ],
+      "htmlContentPaths": [],
+      "htmlDesignPaths": []
+    }
+  ]
+}

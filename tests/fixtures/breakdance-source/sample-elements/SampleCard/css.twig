@@ -1,0 +1,13 @@
+{% set s = design.card.spacing %}
+
+%%SELECTOR%% {
+  width: {{ design.size.width.style }};
+  background-color: {{ design.card.background }};
+  --sample-padding-top: {{ s.padding.top.style }};
+  {{ macros.spacing_padding_all(design.card.spacing) }}
+}
+
+%%SELECTOR%% .sample-card__title {
+  {{ macros.typography(design.title.typography, globalSettings) }}
+  color: {{ content.title.color }};
+}

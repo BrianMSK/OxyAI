@@ -602,6 +602,7 @@ final class SelectorRegistrationService
     {
         $properties = [];
         $this->collectBreakpointProperties($design, [], $properties, $unmappedPaths);
+        $this->normalizeCollectedSelectorProperties($properties);
 
         return $properties;
     }
@@ -652,7 +653,11 @@ final class SelectorRegistrationService
 
         $properties[$breakpoint] = $properties[$breakpoint] ?? [];
         foreach ($targetPaths as $targetPath) {
-            $this->setNestedValue($properties[$breakpoint], explode('.', $targetPath), $value);
+            $this->setNestedValue(
+                $properties[$breakpoint],
+                explode('.', $targetPath),
+                $this->normalizeSelectorMappedValue($targetPath, $value)
+            );
         }
     }
 
@@ -670,6 +675,15 @@ final class SelectorRegistrationService
             'button.margin' => ['spacing.spacing.margin'],
             'button.background' => ['background.background_color'],
             'button.borders.radius' => ['borders.border_radius'],
+            'spacing.padding' => ['spacing.spacing.padding'],
+            'spacing.margin' => ['spacing.spacing.margin'],
+            'background.color' => ['background.background_color'],
+            'background.background_color' => ['background.background_color'],
+            'background.layers' => ['background.backgrounds'],
+            'borders.border' => ['borders.borders'],
+            'borders.borders' => ['borders.borders'],
+            'borders.radius' => ['borders.border_radius'],
+            'borders.border_radius' => ['borders.border_radius'],
         ];
 
         if (isset($boxMap[$sourcePath])) {
@@ -699,6 +713,100 @@ final class SelectorRegistrationService
         }
 
         return [];
+    }
+
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
+    private function normalizeSelectorMappedValue(string $targetPath, $value)
+    {
+        if ($targetPath === 'typography.font_family' && is_string($value)) {
+            $trimmed = trim($value);
+            if (strlen($trimmed) >= 2) {
+                $quote = $trimmed[0];
+                if (($quote === '"' || $quote === "'") && substr($trimmed, -1) === $quote) {
+                    return substr($trimmed, 1, -1);
+                }
+            }
+        }
+
+        if ($targetPath === 'effects.opacity' && is_numeric($value)) {
+            $number = $value + 0;
+            if ($number >= 0 && $number <= 1) {
+                return (int) round($number * 100);
+            }
+
+            return $number;
+        }
+
+        if ($targetPath === 'effects.custom_css' && is_string($value)) {
+            return str_replace('%%SELECTOR%%', ':selector', $value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $properties
+     */
+    private function normalizeCollectedSelectorProperties(array &$properties): void
+    {
+        foreach ($properties as &$breakpointProperties) {
+            if (!is_array($breakpointProperties)) {
+                continue;
+            }
+
+            $this->mergeFlexWrapIntoFlexDirection($breakpointProperties);
+        }
+        unset($breakpointProperties);
+    }
+
+    /**
+     * Oxygen's selector schema emits flex wrapping through the flex direction
+     * control, while converter data may carry `layout.flex_wrap` separately.
+     *
+     * @param array<string, mixed> $properties
+     */
+    private function mergeFlexWrapIntoFlexDirection(array &$properties): void
+    {
+        $layout = $properties['layout'] ?? null;
+        if (!is_array($layout)) {
+            return;
+        }
+
+        $rawWrap = $layout['flex_wrap'] ?? null;
+        if (!is_string($rawWrap)) {
+            return;
+        }
+
+        $wrap = trim($rawWrap);
+        if ($wrap === '') {
+            return;
+        }
+
+        $rawDirection = $layout['flex_direction'] ?? null;
+        $direction = is_string($rawDirection) ? trim($rawDirection) : '';
+
+        if ($direction === '') {
+            $properties['layout']['flex_direction'] = $wrap;
+            unset($properties['layout']['flex_wrap']);
+            return;
+        }
+
+        $wrapTokens = ['wrap', 'nowrap', 'wrap-reverse'];
+        $tokens = preg_split('/\s+/', $direction) ?: [];
+        $kept = [];
+        foreach ($tokens as $token) {
+            if ($token === '' || in_array($token, $wrapTokens, true)) {
+                continue;
+            }
+            $kept[] = $token;
+        }
+        $kept[] = $wrap;
+
+        $properties['layout']['flex_direction'] = implode(' ', $kept);
+        unset($properties['layout']['flex_wrap']);
     }
 
     /**
