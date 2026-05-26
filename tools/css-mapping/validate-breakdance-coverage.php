@@ -48,7 +48,12 @@ if (!is_array($rules)) {
 }
 $elementRules = is_array($manifest['elementRules'] ?? null) ? $manifest['elementRules'] : [];
 
-$validStatuses = array_keys(is_array($manifest['statuses'] ?? null) ? $manifest['statuses'] : []);
+$manifestStatuses = is_array($manifest['statuses'] ?? null) ? $manifest['statuses'] : [];
+if ($manifestStatuses === []) {
+    fwrite(STDERR, "Coverage manifest must define a non-empty statuses map\n");
+    exit(2);
+}
+$validStatuses = array_keys($manifestStatuses);
 $pathRows = [];
 $elementRows = [];
 $cssDeclarationPropertyCounts = [];
@@ -73,7 +78,7 @@ foreach ($inventory['elements'] as $element) {
     foreach ($cssDesignPaths as $path) {
         $rule = findRule($path, $rules, $class, $elementRules);
         $status = is_array($rule) ? (string) ($rule['status'] ?? '') : 'uncovered';
-        if ($status === '' || ($validStatuses !== [] && !in_array($status, $validStatuses, true))) {
+        if ($status === '' || !in_array($status, $validStatuses, true)) {
             $status = 'uncovered';
         }
 
@@ -384,10 +389,17 @@ function hasProof(array $rule): bool
         return false;
     }
 
-    return is_string($proof['jsonShapeTest'] ?? null)
-        && $proof['jsonShapeTest'] !== ''
-        && is_string($proof['compiledCssTest'] ?? null)
-        && $proof['compiledCssTest'] !== '';
+    $jsonShape = $proof['jsonShapeTest'] ?? null;
+    if (!is_string($jsonShape) || $jsonShape === '') {
+        return false;
+    }
+
+    $compiled = $proof['compiledCssTest'] ?? null;
+    $rendered = $proof['renderedPageTest'] ?? null;
+    $hasCompiled = is_string($compiled) && $compiled !== '';
+    $hasRendered = is_string($rendered) && $rendered !== '';
+
+    return $hasCompiled || $hasRendered;
 }
 
 /**

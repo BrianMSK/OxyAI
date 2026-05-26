@@ -757,9 +757,12 @@ class StyleExtractor
             if (
                 $cssProp === 'margin'
                 && $this->isBreakdanceColumnLikeElement($elementType)
-                && in_array('auto', array_map(static fn (string $part): string => strtolower(trim($part)), $parts), true)
             ) {
-                return false;
+                $normalizedParts = array_map(static fn (string $part): string => strtolower(trim($part)), $parts);
+                [$rightSide, $leftSide] = $this->resolveShorthandHorizontalSides($normalizedParts);
+                if ($rightSide === 'auto' || $leftSide === 'auto') {
+                    return false;
+                }
             }
 
             foreach ($parts as $part) {
@@ -816,6 +819,28 @@ class StyleExtractor
     private function isBreakdanceColumnLikeElement(string $elementType): bool
     {
         return in_array($elementType, [ElementTypes::ESSENTIAL_COLUMNS, ElementTypes::ESSENTIAL_COLUMN], true);
+    }
+
+    /**
+     * Resolve the right/left sides of a shorthand box value (margin/padding) using the
+     * 1/2/3/4 value CSS rule. Returns [$right, $left].
+     *
+     * @param array<int, string> $parts Already-normalized (trim/lowercase) tokens.
+     * @return array{0:string,1:string}
+     */
+    private function resolveShorthandHorizontalSides(array $parts): array
+    {
+        $count = count($parts);
+        if ($count === 1) {
+            return [$parts[0], $parts[0]];
+        }
+        if ($count === 2 || $count === 3) {
+            return [$parts[1], $parts[1]];
+        }
+        if ($count >= 4) {
+            return [$parts[1], $parts[3]];
+        }
+        return ['', ''];
     }
 
     private function isLengthProperty(string $cssProp): bool

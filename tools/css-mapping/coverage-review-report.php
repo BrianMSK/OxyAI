@@ -176,7 +176,9 @@ function gapPaths(array $paths): array
         }
 
         $status = (string) ($row['status'] ?? '');
-        $stripSafeWithoutProof = ($row['stripSafe'] ?? false) === true && ($row['hasProof'] ?? false) !== true;
+        $stripSafeWithoutProof = ($row['stripSafe'] ?? false) === true
+            && array_key_exists('hasProof', $row)
+            && $row['hasProof'] === false;
         if (!in_array($status, ['uncovered', 'needs-element-specific-mapper'], true) && !$stripSafeWithoutProof) {
             continue;
         }

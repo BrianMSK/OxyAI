@@ -9,8 +9,8 @@ declare(strict_types=1);
  *
  * Usage:
  *   php tools/css-mapping/extract-breakdance-contracts.php \
- *     "C:\Users\Denis\Downloads\breakdance-elements-for-oxygen-1.0.0 (1)\breakdance-elements-for-oxygen\elements" \
- *     "C:\Users\Denis\Downloads\breakdance-forms-for-oxygen-0.3.0 (1)\breakdance-forms-for-oxygen\elements"
+ *     "<path-to-breakdance-elements>" \
+ *     "<path-to-breakdance-forms>"
  */
 
 if ($argc < 2) {
@@ -41,7 +41,8 @@ foreach (array_slice($argv, 1) as $root) {
 
         $class = extractClassName($elementSource);
         if ($class === null) {
-            continue;
+            fwrite(STDERR, "Unable to extract class name from {$elementPhp}\n");
+            exit(2);
         }
 
         $contracts[] = [

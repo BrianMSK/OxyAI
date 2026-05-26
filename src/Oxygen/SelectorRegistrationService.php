@@ -775,23 +775,37 @@ final class SelectorRegistrationService
             return;
         }
 
-        $direction = $layout['flex_direction'] ?? null;
-        $wrap = $layout['flex_wrap'] ?? null;
-        if (!is_string($direction) || !is_string($wrap) || trim($wrap) === '') {
+        $rawWrap = $layout['flex_wrap'] ?? null;
+        if (!is_string($rawWrap)) {
             return;
         }
 
-        $direction = trim($direction);
-        $wrap = trim($wrap);
+        $wrap = trim($rawWrap);
+        if ($wrap === '') {
+            return;
+        }
+
+        $rawDirection = $layout['flex_direction'] ?? null;
+        $direction = is_string($rawDirection) ? trim($rawDirection) : '';
+
         if ($direction === '') {
             $properties['layout']['flex_direction'] = $wrap;
             unset($properties['layout']['flex_wrap']);
             return;
         }
 
-        if (!str_contains($direction, $wrap)) {
-            $properties['layout']['flex_direction'] = $direction . ' ' . $wrap;
+        $wrapTokens = ['wrap', 'nowrap', 'wrap-reverse'];
+        $tokens = preg_split('/\s+/', $direction) ?: [];
+        $kept = [];
+        foreach ($tokens as $token) {
+            if ($token === '' || in_array($token, $wrapTokens, true)) {
+                continue;
+            }
+            $kept[] = $token;
         }
+        $kept[] = $wrap;
+
+        $properties['layout']['flex_direction'] = implode(' ', $kept);
         unset($properties['layout']['flex_wrap']);
     }
 

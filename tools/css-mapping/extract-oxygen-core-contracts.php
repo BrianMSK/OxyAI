@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * Usage:
  *   php tools/css-mapping/extract-oxygen-core-contracts.php \
- *     "C:\Users\Denis\Downloads\oxygen-6.1.0-beta.4\oxygen"
+ *     "<path-to-oxygen-core>"
  */
 
 if ($argc !== 2) {
@@ -40,7 +40,8 @@ foreach (glob($elementsRoot . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR) ?: [] as 
     $defaultCss = readOptionalFile($elementDir . DIRECTORY_SEPARATOR . 'default.css');
     $class = extractClassName($elementSource);
     if ($class === null) {
-        continue;
+        fwrite(STDERR, "Unable to extract class name from {$elementPhp}\n");
+        exit(2);
     }
 
     $sourceBlob = implode("\n", array_filter([$elementSource, $cssTwig, $htmlTwig], static fn ($value): bool => is_string($value)));

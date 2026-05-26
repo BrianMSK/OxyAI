@@ -14,8 +14,8 @@ The real-source smoke test accepts reviewer-local source paths through:
 - `OXYAI_BREAKDANCE_ELEMENTS_DIR`
 - `OXYAI_BREAKDANCE_FORMS_DIR`
 
-When those environment variables are not set, it uses the current local
-Downloads paths and skips cleanly if the sources are absent.
+When those environment variables are not set the gate skips cleanly so it stays
+portable across reviewer machines.
 
 ## Breakdance Inventory
 
@@ -23,8 +23,8 @@ Generate a static contract inventory from downloaded Breakdance element sources:
 
 ```powershell
 php tools/css-mapping/extract-breakdance-contracts.php `
-  "C:\Users\Denis\Downloads\breakdance-elements-for-oxygen-1.0.0 (1)\breakdance-elements-for-oxygen\elements" `
-  "C:\Users\Denis\Downloads\breakdance-forms-for-oxygen-0.3.0 (1)\breakdance-forms-for-oxygen\elements"
+  "<path-to-breakdance-elements>" `
+  "<path-to-breakdance-forms>"
 ```
 
 The inventory extracts, per element:
@@ -49,8 +49,8 @@ Summarize the inventory into a reviewable coverage matrix:
 
 ```powershell
 php tools/css-mapping/extract-breakdance-contracts.php `
-  "C:\Users\Denis\Downloads\breakdance-elements-for-oxygen-1.0.0 (1)\breakdance-elements-for-oxygen\elements" `
-  "C:\Users\Denis\Downloads\breakdance-forms-for-oxygen-0.3.0 (1)\breakdance-forms-for-oxygen\elements" `
+  "<path-to-breakdance-elements>" `
+  "<path-to-breakdance-forms>" `
   | php tools/css-mapping/summarize-breakdance-contracts.php --summary-only -
 ```
 
@@ -76,8 +76,8 @@ Validate the same inventory against the explicit coverage manifest:
 
 ```powershell
 php tools/css-mapping/extract-breakdance-contracts.php `
-  "C:\Users\Denis\Downloads\breakdance-elements-for-oxygen-1.0.0 (1)\breakdance-elements-for-oxygen\elements" `
-  "C:\Users\Denis\Downloads\breakdance-forms-for-oxygen-0.3.0 (1)\breakdance-forms-for-oxygen\elements" `
+  "<path-to-breakdance-elements>" `
+  "<path-to-breakdance-forms>" `
   | php tools/css-mapping/validate-breakdance-coverage.php --summary-only `
       config/css-mapping/breakdance-coverage-manifest.json -
 ```
@@ -118,8 +118,8 @@ Cluster mapper work into reviewable buckets:
 
 ```powershell
 php tools/css-mapping/extract-breakdance-contracts.php `
-  "C:\Users\Denis\Downloads\breakdance-elements-for-oxygen-1.0.0 (1)\breakdance-elements-for-oxygen\elements" `
-  "C:\Users\Denis\Downloads\breakdance-forms-for-oxygen-0.3.0 (1)\breakdance-forms-for-oxygen\elements" `
+  "<path-to-breakdance-elements>" `
+  "<path-to-breakdance-forms>" `
   | php tools/css-mapping/validate-breakdance-coverage.php `
       config/css-mapping/breakdance-coverage-manifest.json - `
   | php tools/css-mapping/cluster-coverage-gaps.php -
@@ -135,8 +135,8 @@ Render the same validator output as a PR review gate:
 
 ```powershell
 php tools/css-mapping/extract-breakdance-contracts.php `
-  "C:\Users\Denis\Downloads\breakdance-elements-for-oxygen-1.0.0 (1)\breakdance-elements-for-oxygen\elements" `
-  "C:\Users\Denis\Downloads\breakdance-forms-for-oxygen-0.3.0 (1)\breakdance-forms-for-oxygen\elements" `
+  "<path-to-breakdance-elements>" `
+  "<path-to-breakdance-forms>" `
   | php tools/css-mapping/validate-breakdance-coverage.php `
       config/css-mapping/breakdance-coverage-manifest.json - `
   | php tools/css-mapping/coverage-review-report.php -
@@ -171,8 +171,8 @@ output:
 
 ```powershell
 php tools/css-mapping/extract-breakdance-contracts.php `
-  "C:\Users\Denis\Downloads\breakdance-elements-for-oxygen-1.0.0 (1)\breakdance-elements-for-oxygen\elements" `
-  "C:\Users\Denis\Downloads\breakdance-forms-for-oxygen-0.3.0 (1)\breakdance-forms-for-oxygen\elements" `
+  "<path-to-breakdance-elements>" `
+  "<path-to-breakdance-forms>" `
   | php tools/css-mapping/validate-breakdance-coverage.php `
       config/css-mapping/breakdance-coverage-manifest.json - `
   | php tools/css-mapping/element-contract-backlog.php -
@@ -188,8 +188,8 @@ Render the top backlog items as Markdown for PR review:
 
 ```powershell
 php tools/css-mapping/extract-breakdance-contracts.php `
-  "C:\Users\Denis\Downloads\breakdance-elements-for-oxygen-1.0.0 (1)\breakdance-elements-for-oxygen\elements" `
-  "C:\Users\Denis\Downloads\breakdance-forms-for-oxygen-0.3.0 (1)\breakdance-forms-for-oxygen\elements" `
+  "<path-to-breakdance-elements>" `
+  "<path-to-breakdance-forms>" `
   | php tools/css-mapping/validate-breakdance-coverage.php `
       config/css-mapping/breakdance-coverage-manifest.json - `
   | php tools/css-mapping/element-contract-backlog.php - `
@@ -211,7 +211,7 @@ Extract its selector mapping table:
 
 ```powershell
 php tools/css-mapping/extract-oxydance-selector-map.php `
-  "C:\Users\Denis\Downloads\oxydance-pilot-2.0.0\oxydance-pilot\assets\js\builder-ai.js"
+  "<path-to-oxydance-builder-ai.js>"
 ```
 
 See `docs/oxydance-css-mapping-findings.md` for the concrete path mappings and
@@ -238,7 +238,7 @@ Generate a static inventory from the Oxygen 6 core element source:
 
 ```powershell
 php tools/css-mapping/extract-oxygen-core-contracts.php `
-  "C:\Users\Denis\Downloads\oxygen-6.1.0-beta.4\oxygen"
+  "<path-to-oxygen-core>"
 ```
 
 The Oxygen extractor reads:
@@ -255,7 +255,7 @@ Validate Oxygen core against the same coverage manifest:
 
 ```powershell
 php tools/css-mapping/extract-oxygen-core-contracts.php `
-  "C:\Users\Denis\Downloads\oxygen-6.1.0-beta.4\oxygen" `
+  "<path-to-oxygen-core>" `
   | php tools/css-mapping/validate-breakdance-coverage.php --summary-only `
       config/css-mapping/breakdance-coverage-manifest.json -
 ```

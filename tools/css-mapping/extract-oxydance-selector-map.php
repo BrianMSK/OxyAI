@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * Usage:
  *   php tools/css-mapping/extract-oxydance-selector-map.php \
- *     "C:\Users\Denis\Downloads\oxydance-pilot-2.0.0\oxydance-pilot\assets\js\builder-ai.js"
+ *     "<path-to-oxydance-builder-ai.js>"
  */
 
 if ($argc !== 2) {
@@ -22,7 +22,7 @@ if ($source === false) {
     exit(2);
 }
 
-if (!preg_match('/var\s+PATH_MAP\s*=\s*\{(.*?)\n\s*\};/s', $source, $matches)) {
+if (!preg_match('/\b(?:var|let|const)\s+PATH_MAP\s*=\s*\{(.*?)\}\s*;/s', $source, $matches)) {
     fwrite(STDERR, "Unable to find PATH_MAP in {$path}\n");
     exit(2);
 }

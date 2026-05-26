@@ -197,9 +197,37 @@ class ConversionAuditBuilder
             }
 
             foreach (['left', 'right'] as $side) {
-                if (isset($breakpointValue[$side]) && strtolower(trim((string) $breakpointValue[$side])) === 'auto') {
+                if (!array_key_exists($side, $breakpointValue)) {
+                    continue;
+                }
+
+                if ($this->isAutoLengthValue($breakpointValue[$side])) {
                     return true;
                 }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private function isAutoLengthValue($value): bool
+    {
+        if (is_string($value)) {
+            return strtolower(trim($value)) === 'auto';
+        }
+
+        if (is_array($value)) {
+            $style = $value['style'] ?? null;
+            if (is_string($style) && strtolower(trim($style)) === 'auto') {
+                return true;
+            }
+
+            $unit = $value['unit'] ?? null;
+            if (is_string($unit) && strtolower(trim($unit)) === 'auto') {
+                return true;
             }
         }
 

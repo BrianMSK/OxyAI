@@ -22,18 +22,9 @@ $validator = $root . '/tools/css-mapping/validate-breakdance-coverage.php';
 $breakdanceExtractor = $root . '/tools/css-mapping/extract-breakdance-contracts.php';
 $oxygenExtractor = $root . '/tools/css-mapping/extract-oxygen-core-contracts.php';
 
-$breakdanceElements = sourcePath(
-    'OXYAI_BREAKDANCE_ELEMENTS_DIR',
-    'C:\\Users\\Denis\\Downloads\\breakdance-elements-for-oxygen-1.0.0 (1)\\breakdance-elements-for-oxygen\\elements'
-);
-$breakdanceForms = sourcePath(
-    'OXYAI_BREAKDANCE_FORMS_DIR',
-    'C:\\Users\\Denis\\Downloads\\breakdance-forms-for-oxygen-0.3.0 (1)\\breakdance-forms-for-oxygen\\elements'
-);
-$oxygenCore = sourcePath(
-    'OXYAI_OXYGEN_CORE_DIR',
-    'C:\\Users\\Denis\\Downloads\\oxygen-6.1.0-beta.4\\oxygen'
-);
+$breakdanceElements = sourcePath('OXYAI_BREAKDANCE_ELEMENTS_DIR');
+$breakdanceForms = sourcePath('OXYAI_BREAKDANCE_FORMS_DIR');
+$oxygenCore = sourcePath('OXYAI_OXYGEN_CORE_DIR');
 
 $rows = [];
 $rows[] = coverageRow(
@@ -141,14 +132,14 @@ function validatorCommand(string $validator, string $manifest): string
         . ' --summary-only ' . escapeshellarg($manifest) . ' -';
 }
 
-function sourcePath(string $envName, string $default): string
+function sourcePath(string $envName): string
 {
     $value = getenv($envName);
     if (is_string($value) && trim($value) !== '') {
         return $value;
     }
 
-    return $default;
+    return '';
 }
 
 /**

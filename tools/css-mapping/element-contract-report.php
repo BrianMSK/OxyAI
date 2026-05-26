@@ -61,10 +61,11 @@ foreach (array_slice($contracts, 0, $limit) as $contract) {
     $lines[] = '## ' . heading((string) ($contract['name'] ?? $contract['element'] ?? 'Element'));
     $lines[] = '';
     $lines[] = '- Element: `' . escapeInline((string) ($contract['element'] ?? '')) . '`';
-    $lines[] = '- Gap paths: ' . scalar($contract['gapPathCount'] ?? count($contract['gapPaths'] ?? []));
+    $rawGapPaths = is_array($contract['gapPaths'] ?? null) ? $contract['gapPaths'] : [];
+    $lines[] = '- Gap paths: ' . scalar($contract['gapPathCount'] ?? count($rawGapPaths));
     $lines[] = '- Recommended contract: ' . (string) ($contract['recommendedContract'] ?? '');
 
-    $gapPaths = array_values(array_filter(array_map('strval', $contract['gapPaths'] ?? [])));
+    $gapPaths = array_values(array_filter(array_map('strval', $rawGapPaths)));
     $lines[] = '';
     $lines[] = 'Top gap paths:';
     foreach (array_slice($gapPaths, 0, 12) as $path) {
@@ -74,8 +75,10 @@ foreach (array_slice($contracts, 0, $limit) as $contract) {
         $lines[] = '- ... +' . (count($gapPaths) - 12) . ' more';
     }
 
-    $declarations = array_values(array_filter($contract['cssDeclarationsTouchingGaps'] ?? [], 'is_array'));
-    $macros = array_values(array_filter($contract['cssMacrosTouchingGaps'] ?? [], 'is_array'));
+    $rawDeclarations = is_array($contract['cssDeclarationsTouchingGaps'] ?? null) ? $contract['cssDeclarationsTouchingGaps'] : [];
+    $rawMacros = is_array($contract['cssMacrosTouchingGaps'] ?? null) ? $contract['cssMacrosTouchingGaps'] : [];
+    $declarations = array_values(array_filter($rawDeclarations, 'is_array'));
+    $macros = array_values(array_filter($rawMacros, 'is_array'));
 
     $lines[] = '';
     $lines[] = 'CSS declarations touching gaps:';
@@ -83,7 +86,8 @@ foreach (array_slice($contracts, 0, $limit) as $contract) {
         $lines[] = '- none detected';
     } else {
         foreach (array_slice($declarations, 0, 8) as $row) {
-            $touches = implode(', ', array_slice(array_values(array_filter(array_map('strval', $row['touchesGapPaths'] ?? []))), 0, 3));
+            $rowTouches = is_array($row['touchesGapPaths'] ?? null) ? $row['touchesGapPaths'] : [];
+            $touches = implode(', ', array_slice(array_values(array_filter(array_map('strval', $rowTouches))), 0, 3));
             $selector = (string) ($row['selector'] ?? '');
             $lines[] = '- `' . escapeInline((string) ($row['property'] ?? '')) . '` in `' . escapeInline($selector) . '` -> ' . escapeInline($touches);
         }
@@ -98,7 +102,8 @@ foreach (array_slice($contracts, 0, $limit) as $contract) {
         $lines[] = '- none detected';
     } else {
         foreach (array_slice($macros, 0, 8) as $row) {
-            $touches = implode(', ', array_slice(array_values(array_filter(array_map('strval', $row['touchesGapPaths'] ?? []))), 0, 3));
+            $rowTouches = is_array($row['touchesGapPaths'] ?? null) ? $row['touchesGapPaths'] : [];
+            $touches = implode(', ', array_slice(array_values(array_filter(array_map('strval', $rowTouches))), 0, 3));
             $lines[] = '- `' . escapeInline((string) ($row['macro'] ?? '')) . '` -> ' . escapeInline($touches);
         }
         if (count($macros) > 8) {
@@ -108,7 +113,8 @@ foreach (array_slice($contracts, 0, $limit) as $contract) {
 
     $lines[] = '';
     $lines[] = 'Completion checklist:';
-    foreach (($contract['completionChecklist'] ?? []) as $item) {
+    $checklist = is_array($contract['completionChecklist'] ?? null) ? $contract['completionChecklist'] : [];
+    foreach ($checklist as $item) {
         if (is_string($item) && $item !== '') {
             $lines[] = '- [ ] ' . $item;
         }
